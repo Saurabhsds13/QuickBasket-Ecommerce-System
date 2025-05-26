@@ -1,0 +1,32 @@
+# === Java / Spring Boot ===
+target/
+*.class
+*.jar
+*.war
+*.log
+
+# IDE files
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.swp
+*.bak
+
+# Maven
+/logs
+.mvn/
+!**/src/main/resources/static/**
+
+# === Node / React ===
+node_modules/
+build/
+.env
+package-lock.json
+yarn.lock
+npm-debug.log*
+
+# OS-specific
+.DS_Store
+Thumbs.db
