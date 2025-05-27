@@ -1,6 +1,6 @@
-# 🛒 DMart Clone – Full Stack E-Commerce Platform
+# 🛒 Full Stack E-Commerce Platform
 
-This is a full-stack clone of [DMart.in](https://www.dmart.in) built as a **learning-focused prototype** and **technical skills showcase**.  
+This is a full-stack clone of [Ecommerce Site] built as a **learning-focused prototype** and **technical skills showcase**.  
 The project is structured as a **monorepo** with both backend and frontend code organized under one repository.
 
 ---
@@ -56,15 +56,15 @@ This application replicates the core functionalities of a modern e-commerce plat
 
 
 ```
-dmart-clone/
+Ecommerce-clone/
 ├── backend/                  # Spring Boot application
 │   ├── src/
-│   │   ├── main/java/com/dmartclone/
+│   │   ├── main/java/com/Ecommerceclone/
 │   │   │   ├── controller/
 │   │   │   ├── service/
 │   │   │   ├── repository/
 │   │   │   ├── entity/
-│   │   │   └── DmartCloneApplication.java
+│   │   │   └── EcommerceCloneApplication.java
 │   │   └── resources/
 │   │       └── application.properties
 │   ├── pom.xml
@@ -78,7 +78,7 @@ dmart-clone/
 │
 ├── docs/                     # Documentation assets
 │   ├── SRS.docx
-│   ├── dmart_schema_documentation.xlsx
+│   ├── Ecommerce_schema_documentation.xlsx
 │   └── ERD.png               # database ER diagram image
 │
 ├── .gitignore
@@ -93,7 +93,7 @@ dmart-clone/
 1. Clone the repository
 2. Configure DB connection in `application.properties`
 3. Reverse engineer database using JPA tools (e.g., `spring.jpa.hibernate.ddl-auto=none`)
-4. Run `DmartServerApplication.java`
+4. Run `EcommerceServerApplication.java`
 
 ### Frontend (React)
 
@@ -110,7 +110,7 @@ dmart-clone/
 - Core Tables: `users`, `products`, `orders`, `order_items`, `addresses`, `cart_items`, `categories`
 - Plus additional: `user_roles`, `payments`, `reviews`, etc.
 
-> 📝 Full schema documentation is available in `/docs/DMART - Schema Documentation.xlsx`
+> 📝 Full schema documentation is available in `/docs/Ecommerce - Schema Documentation.xlsx`
 
 ---
 
@@ -142,4 +142,4 @@ dmart-clone/
 
 
 ## ⚠️ Disclaimer
-This prototype project is for educational and demonstration purposes only and is not affiliated with or endorsed by DMart or Avenue Supermarts Ltd.
+This prototype project is for educational and demonstration purposes only and is not affiliated with or endorsed by Ecommerce or Avenue Supermarts Ltd.
