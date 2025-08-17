@@ -142,4 +142,4 @@ Ecommerce-clone/
 
 
 ## ⚠️ Disclaimer
-This prototype project is for educational and demonstration purposes only and is not affiliated with or endorsed by Ecommerce or Avenue Supermarts Ltd.
+This prototype project is for educational and demonstration purposes only and is not affiliated with or endorsed by any e-commerce organization.
