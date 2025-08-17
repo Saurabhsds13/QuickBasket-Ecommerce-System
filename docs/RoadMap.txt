@@ -24,7 +24,7 @@ PHASE 2: E-COMMERCE APPLICATION - BACKEND DEVELOPMENT
 2.2. Design REST APIs:
     - Best Practices: Nouns for URLs, HTTP methods, HTTP status codes, Versioning, DTOs, Input validation.
     - Tools: Swagger (OpenAPI) with Springfox or springdoc-openapi.
-    - Why: Critical for backend roles.
+    - Why: Critical for backend roles.	
 
 2.3. Database Design & Integration (Spring Data JPA):
     - Database Choice: PostgreSQL or MySQL. (SQL knowledge is key).
@@ -174,7 +174,31 @@ Scalability and Performance
                │ External Integrations       │
                │ (Payment, Delivery, Email)  │
                └─────────────────────────────┘
+⃣
+Admin Responsibilities
+Product Management
+Create, update, delete products
+Upload product images
+Manage stock quantity
+Category Management
+Create, update, delete categories
+Order Management
+View all orders
+Update order status (pending, shipped, delivered, cancelled)
+User Management
+View all users
+Change roles (USER → ADMIN)
+Coupon/Discount Management
+Create/update/delete coupons
+Notifications / Audit Logs
+Send admin notifications
+Track changes via admin_audit_logs
 
+
+💬 Interview Talking Points
+You can now confidently say:
+
+"I built a secure e-commerce backend with role-based admin controls. I used clean layered architecture, enum-based roles for simplicity, soft deletes, and pagination. I focused on security by blocking users and preventing login via Spring Security. I also added audit fields, validation, and error handling. The project is testable, well-documented, and ready to scale." 
 
 2. Key Components Description
 
@@ -497,3 +521,86 @@ RDBMS: PostgreSQL, MySQL
 NoSQL: MongoDB (for product catalogs, session data)
 Cache: Redis (for sessions, cart, quick lookups)
 Search: Elasticsearch
+
+
+
+
+ 1. Key Topics to Cover
+🔹 Spring Core
+Inversion of Control (IoC), Dependency Injection (DI)
+
+Bean scopes (singleton, prototype, etc.)
+
+Bean lifecycle
+
+ApplicationContext vs BeanFactory
+
+@Autowired, @Qualifier, @Primary
+
+Configuration using @Configuration, @Bean
+
+🔹 Spring AOP (Aspect-Oriented Programming)
+What is AOP? Use cases.
+
+Terminologies: JoinPoint, Pointcut, Advice, Aspect
+
+Annotations: @Aspect, @Before, @After, @Around
+
+🔹 Spring MVC
+DispatcherServlet flow
+
+@Controller vs @RestController
+
+ModelAndView, ViewResolvers
+
+Exception Handling (@ControllerAdvice, @ExceptionHandler)
+
+🔹 Spring Boot
+Auto-configuration
+
+Spring Boot starters
+
+application.properties / application.yml
+
+Profiles (@Profile)
+
+Embedded servers (Tomcat/Jetty)
+
+🔹 Spring Data JPA
+Repositories (CrudRepository, JpaRepository)
+
+Query methods, @Query, Native queries
+
+Transactions (@Transactional)
+
+Entity relationships, lazy vs eager loading
+
+🔹 Spring Security
+Authentication vs Authorization
+
+Filters, SecurityContext
+
+OAuth2 basics
+
+JWT with Spring Security
+
+🔹 Testing
+Unit tests with @WebMvcTest, @DataJpaTest
+
+MockMvc, Mockito, TestRestTemplate
+
+
+3. Advanced Spring Questions
+How does Spring Boot achieve auto-configuration?
+
+What is the difference between @EnableAutoConfiguration and @SpringBootApplication?
+
+What is lazy initialization of beans?
+
+What is the role of @ConditionalOnMissingBean?
+
+Explain the FilterChain in Spring Security.
+
+How do you make a Spring Boot app production-ready?
+
+Difference between RestTemplate and WebClient
