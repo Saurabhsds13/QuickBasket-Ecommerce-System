@@ -604,3 +604,171 @@ Explain the FilterChain in Spring Security.
 How do you make a Spring Boot app production-ready?
 
 Difference between RestTemplate and WebClient
+
+JWT TOKEN and SPING SECURITY : 
+
+2️⃣ What we implemented using Spring Security
+Here’s how to explain it clearly in an interview:
+Authentication
+Users can register and login.
+Passwords are stored hashed using BCrypt.
+Login returns a JWT token, which is used for subsequent requests.
+Authorization
+Secured endpoints using @PreAuthorize or antMatchers rules.
+Example: /api/admin/** is only accessible to users with ROLE_ADMIN.
+/api/users/** is accessible to authenticated users.
+Stateless security
+Configured SessionCreationPolicy.STATELESS → no server session.
+All requests are authorized using JWT tokens.
+Custom UserDetailsService
+Loads user data from the database instead of using default Spring Boot users.
+Converts your User entity + Role into Spring Security’s UserDetails object.
+Password security
+Used BCryptPasswordEncoder to hash passwords before saving.
+Verifies passwords securely on login.
+JWT integration
+Tokens are included in the Authorization header.
+Ensures stateless, scalable authentication for APIs.
+
+🔹 2. How Spring Security validates the token
+
+Right now your SecurityConfig defines which URLs need authentication, but Spring Security doesn’t know how to parse JWT yet.
+For that, you typically add a JWT Filter that:
+
+Reads the Authorization header.
+
+Extracts the token (after "Bearer ").
+
+Validates it (signature, expiration).
+
+Loads the user details from DB if needed.
+
+Sets the authenticated user in SecurityContextHolder.
+
+🔹 What to tell interviewers
+
+If asked “How did you secure login with Spring Security + JWT?”:
+
+👉 Answer:
+
+I used BCryptPasswordEncoder to store hashed passwords in DB.
+
+On login, I delegate authentication to Spring Security’s AuthenticationManager, which checks the credentials against my UserDetailsService.
+
+On success, I generate a signed JWT with claims (username, roles) using jjwt.
+
+For each request, a JWT filter extracts and validates the token, then sets the authentication in the SecurityContext.
+
+All routes are stateless (SessionCreationPolicy.STATELESS), so only JWT is used for auth.
+
+Access is controlled by roles (e.g., hasRole('ADMIN') for admin endpoints).
+
+
+
+📝 Security & JWT Implementation Summary (Interview Notes)
+1. Spring Security Setup
+
+Added a custom SecurityConfig using SecurityFilterChain.
+
+Disabled CSRF (because we are using JWT and stateless REST APIs).
+
+Configured:
+
+/api/auth/**, Swagger (/swagger-ui/**, /v3/api-docs/**) and /actuator/health → publicly accessible (permitAll()).
+
+All other endpoints (/api/users/**, /api/admin/**, etc.) → must be authenticated.
+
+Set stateless session management (SessionCreationPolicy.STATELESS) to avoid storing sessions in server memory.
+👉 This is a key point for scalable microservices / e-commerce systems.
+
+2. Password Handling
+
+Configured a PasswordEncoder (BCryptPasswordEncoder) to hash passwords before storing them in the database.
+
+At login, we validate credentials by matching the raw password with the hashed DB password.
+👉 Prevents storing plain-text passwords.
+
+3. UserDetailsService
+
+Implemented a CustomUserDetailsService that loads user data (username, password, roles) from the database.
+
+Integrated it with Spring Security, so authentication is based on DB-stored users, not hardcoded memory users.
+
+4. JWT Utility (JwtUtil)
+
+Created a JWT utility class that:
+
+Generates JWT tokens (generateToken()).
+
+Extracts username from token (extractUsername()).
+
+Validates token expiration and integrity (validateToken()).
+
+Used a 256-bit Base64 encoded secret key (as per RFC 7518).
+
+Configurable expiration time (app.jwt.expirationMs) → e.g., 1 hour.
+
+5. JWT Authentication Filter
+
+Built a custom JwtAuthenticationFilter (extends OncePerRequestFilter).
+
+For each request:
+
+Extracts the token from Authorization: Bearer <token>.
+
+Validates token with JwtUtil.
+
+Loads user details (CustomUserDetailsService).
+
+Sets SecurityContext so Spring knows the user is authenticated.
+
+Registered the filter with .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class) in SecurityConfig.
+
+6. Login & Register Flow
+
+Register API:
+
+Hash password.
+
+Store user in DB.
+
+Login API:
+
+Authenticate user.
+
+On success → generate JWT and return it to client (JwtResponse).
+
+Using the token:
+
+Client must send the JWT in every subsequent request:
+
+Authorization: Bearer <token>
+
+
+Without a valid token → request is rejected with 401 Unauthorized.
+
+7. Result
+
+✅ Stateless Authentication (no server session storage).
+
+✅ Password security via hashing.
+
+✅ JWT token generation, validation, and enforcement.
+
+✅ Protected APIs (e.g., /api/users/**) → accessible only with a valid JWT.
+
+✅ Open APIs (e.g., /api/auth/login, /api/auth/register) → accessible without authentication.
+
+🎤 How to Present in Interview
+
+When asked “What security have you implemented in your project?” — you can answer like this:
+
+👉 “We secured our e-commerce backend using Spring Security and JWT. We disabled default session-based auth and instead used stateless JWT authentication. Passwords are hashed with BCrypt before storing in the database. On login, the system validates credentials and issues a JWT signed with a 256-bit secret key. Every subsequent request must carry this token in the Authorization header. A custom JWT filter validates the token and sets the security context. Public endpoints like login, register, and Swagger are open, while user and admin APIs are strictly protected. This approach makes the system scalable, stateless, and secure.”
+
+⚡ Next level (for bonus points in interview):
+
+Role-based authorization (@PreAuthorize("hasRole('ADMIN')")) for admin APIs.
+
+Refresh tokens for long-lived sessions.
+
+Exception handling (401 vs 403).
