@@ -1,6 +1,6 @@
 package com.dmart.clone.service;
 
-import java.util.Collections;
+import java.util.List;
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,7 +26,14 @@ public class CustomUserDetailsService implements UserDetailsService {
 		User user = userRepository.findByUsername(username)
 				.orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
+		System.out.println("Loaded user " + user.getUsername() + " with authorities: "
+				+ List.of(new SimpleGrantedAuthority(user.getRole().toSpringRole())));
+
 		return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(),
-				Collections.singleton(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())));
+				!user.isBlocked(), // enabled
+				true, // accountNonExpired
+				true, // credentialsNonExpired
+				true, // accountNonLocked
+				List.of(new SimpleGrantedAuthority(user.getRole().toSpringRole())));
 	}
 }

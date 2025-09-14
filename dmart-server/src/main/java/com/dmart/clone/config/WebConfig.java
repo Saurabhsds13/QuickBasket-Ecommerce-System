@@ -13,7 +13,6 @@ public class WebConfig implements WebMvcConfigurer {
 
 	@Override
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
-		// Any URL starting with /uploads/** will be mapped to files in basePath
 		registry.addResourceHandler("/uploads/**").addResourceLocations("file:" + basePath + "/");
 	}
 }

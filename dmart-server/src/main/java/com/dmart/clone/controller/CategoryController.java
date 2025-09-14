@@ -3,6 +3,7 @@ package com.dmart.clone.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,7 +14,7 @@ import com.dmart.clone.repository.CategoryRepository;
 
 @RestController
 @RequestMapping("/api/public/categories")
-
+@CrossOrigin(origins = "http://localhost:5173")
 public class CategoryController {
 	private final CategoryRepository categoryRepository;
 

@@ -36,8 +36,8 @@ public class User {
 	private boolean blocked = false;
 
 	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
-	private Role role = Role.USER;
+	@Column(nullable = false,length = 20)
+	private Role role;
 
 	public Long getId() {
 		return id;
