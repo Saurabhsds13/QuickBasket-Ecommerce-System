@@ -1,5 +1,10 @@
 package com.dmart.clone.model;
 
 public enum Role {
-	USER, ADMIN
+
+	USER, ADMIN;
+
+	public String toSpringRole() {
+		return "ROLE_" + this.name();
+	}
 }

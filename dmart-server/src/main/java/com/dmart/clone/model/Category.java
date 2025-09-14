@@ -50,6 +50,11 @@ public class Category {
 		this.description = description;
 	}
 
+	public Category() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+
 	@Override
 	public String toString() {
 		return "Category [id=" + id + ", name=" + name + ", description=" + description + "]";

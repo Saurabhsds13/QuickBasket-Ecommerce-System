@@ -13,7 +13,7 @@ import com.dmart.clone.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
-@RequestMapping("/api/orders")
+@RequestMapping("/api/user/orders")
 public class OrderController {
 
 	@Autowired

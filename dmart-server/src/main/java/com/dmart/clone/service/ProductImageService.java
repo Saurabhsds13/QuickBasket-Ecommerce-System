@@ -9,7 +9,10 @@ import com.dmart.clone.model.ProductImage;
 
 public interface ProductImageService {
 
-	ProductImage uploadImage(Product product, MultipartFile file, boolean isPrimary);
+	ProductImage uploadImage(Long productId, MultipartFile file, boolean isPrimary);
 
 	List<ProductImage> getImagesByProduct(Product product);
+
+	void deleteImage(Long imageId);
+
 }

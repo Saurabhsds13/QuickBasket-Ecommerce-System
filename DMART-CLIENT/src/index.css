@@ -1,0 +1,15 @@
+body {
+  font-family: 'Inter', sans-serif;
+}
+:root {
+  --radio-dot-svg: url('data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%2334d399%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3ccircle cx=%278%27 cy=%278%27 r=%273%27/%3e%3c/svg%3e');
+}
+.gradient-button {
+  background: linear-gradient(to right, #059669, #06b6d4, #6366f1);
+  background-size: 200% auto;
+  transition: background-position 0.5s ease;
+}
+
+.gradient-button:hover {
+  background-position: right center;
+}

@@ -18,7 +18,6 @@ public class AuthController {
 	private final AuthService authService;
 
 	public AuthController(AuthService authService) {
-		super();
 		this.authService = authService;
 	}
 
@@ -29,7 +28,7 @@ public class AuthController {
 
 	@PostMapping("/register")
 	public ResponseEntity<Void> register(@RequestBody RegisterRequest req) {
-		authService.register(req);
+		authService.registerUser(req);
 		return ResponseEntity.ok().build();
 	}
 }
