@@ -19,16 +19,81 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor — handle 401 (expired/invalid token)
+// Response interceptor — handle 401 with silent refresh
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Token expired or invalid — clear auth and redirect
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      window.dispatchEvent(new Event("auth-expired"));
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      // Don't retry refresh/login/register requests
+      if (originalRequest.url?.includes("/auth/")) {
+        return Promise.reject(error);
+      }
+
+      if (isRefreshing) {
+        // Queue requests while refreshing
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        }).then((token) => {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return api(originalRequest);
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      const storedRefreshToken = localStorage.getItem("refreshToken");
+      if (!storedRefreshToken) {
+        // No refresh token — force logout
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        localStorage.removeItem("refreshToken");
+        window.dispatchEvent(new Event("auth-expired"));
+        isRefreshing = false;
+        return Promise.reject(error);
+      }
+
+      try {
+        const res = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+          refreshToken: storedRefreshToken,
+        });
+
+        const { token: newToken } = res.data;
+        localStorage.setItem("token", newToken);
+
+        api.defaults.headers.common.Authorization = `Bearer ${newToken}`;
+        processQueue(null, newToken);
+
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return api(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        localStorage.removeItem("refreshToken");
+        window.dispatchEvent(new Event("auth-expired"));
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
     }
+
     return Promise.reject(error);
   }
 );
@@ -39,6 +104,12 @@ export const login = (username, password) =>
 
 export const register = (username, email, password, phone) =>
   api.post("/auth/register", { username, email, password, phone });
+
+export const refreshToken = (refreshToken) =>
+  api.post("/auth/refresh", { refreshToken });
+
+export const logoutAPI = (refreshToken) =>
+  api.post("/auth/logout", { refreshToken });
 
 // ============ USER PROFILE ============
 export const getMyProfile = () => api.get("/users/me");
@@ -111,5 +182,12 @@ export const deleteAddress = (id) => api.delete(`/user/addresses/${id}`);
 // ============ COUPONS (Authenticated) ============
 export const applyCoupon = (code) =>
   api.post("/user/coupons/apply", null, { params: { code } });
+
+// ============ PAYMENTS (Authenticated) ============
+export const createPaymentOrder = (orderId) =>
+  api.post(`/user/payments/create/${orderId}`);
+
+export const verifyPayment = (data) =>
+  api.post("/user/payments/verify", data);
 
 export default api;

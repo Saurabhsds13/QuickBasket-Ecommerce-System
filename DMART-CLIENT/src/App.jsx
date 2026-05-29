@@ -12,6 +12,7 @@ import OrderConfirmationPage from "./pages/OrderConfirmationPage.jsx";
 import OrdersPage from "./pages/OrdersPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import WishlistPage from "./pages/WishlistPage.jsx";
+import ProductDetailPage from "./pages/ProductDetailPage.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 export default function App() {
@@ -27,6 +28,7 @@ export default function App() {
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/AllProducts" element={<AllProducts />} />
+            <Route path="/product/:id" element={<ProductDetailPage />} />
             <Route path="/cart" element={<CartPage />} />
 
             {/* Protected Routes — require authentication */}

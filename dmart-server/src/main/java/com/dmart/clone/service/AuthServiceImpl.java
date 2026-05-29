@@ -4,6 +4,7 @@ import java.time.Instant;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.dmart.clone.dto.JwtResponse;
 import com.dmart.clone.dto.LoginRequest;
@@ -11,22 +12,27 @@ import com.dmart.clone.dto.RegisterRequest;
 import com.dmart.clone.dto.UserViewDto;
 import com.dmart.clone.exception.ConflictException;
 import com.dmart.clone.exception.ResourceNotFoundException;
+import com.dmart.clone.model.RefreshToken;
 import com.dmart.clone.model.Role;
 import com.dmart.clone.model.User;
 import com.dmart.clone.repository.UserRepository;
 import com.dmart.clone.security.JwtUtil;
 
 @Service
+@Transactional
 public class AuthServiceImpl implements AuthService {
 
 	private final UserRepository userRepo;
 	private final PasswordEncoder encoder;
 	private final JwtUtil jwt;
+	private final RefreshTokenService refreshTokenService;
 
-	public AuthServiceImpl(UserRepository userRepo, PasswordEncoder encoder, JwtUtil jwt) {
+	public AuthServiceImpl(UserRepository userRepo, PasswordEncoder encoder, JwtUtil jwt,
+						   RefreshTokenService refreshTokenService) {
 		this.userRepo = userRepo;
 		this.encoder = encoder;
 		this.jwt = jwt;
+		this.refreshTokenService = refreshTokenService;
 	}
 
 	@Override
@@ -38,10 +44,16 @@ public class AuthServiceImpl implements AuthService {
 			throw new RuntimeException("Bad credentials");
 		}
 
+		if (user.isBlocked()) {
+			throw new RuntimeException("Your account has been blocked. Contact support.");
+		}
+
 		String token = jwt.generateToken(user.getUsername(), user.getRole().name());
 		long expiry = jwt.extractExpiration(token).getTime();
 
-		return new JwtResponse(token, user.getUsername(), user.getRole().name(), expiry);
+		RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
+
+		return new JwtResponse(token, refreshToken.getToken(), user.getUsername(), user.getRole().name(), expiry);
 	}
 
 	@Override
@@ -68,5 +80,20 @@ public class AuthServiceImpl implements AuthService {
 
 		return new UserViewDto(saved.getId(), saved.getUsername(), saved.getEmail(), saved.getPhone(), saved.getRole(),
 				saved.isBlocked(), saved.getCreatedAt());
+	}
+
+	public JwtResponse refreshAccessToken(String refreshTokenStr) {
+		RefreshToken refreshToken = refreshTokenService.verifyRefreshToken(refreshTokenStr);
+		User user = refreshToken.getUser();
+
+		String newAccessToken = jwt.generateToken(user.getUsername(), user.getRole().name());
+		long expiry = jwt.extractExpiration(newAccessToken).getTime();
+
+		return new JwtResponse(newAccessToken, refreshToken.getToken(), user.getUsername(), user.getRole().name(), expiry);
+	}
+
+	public void logout(String refreshTokenStr) {
+		RefreshToken refreshToken = refreshTokenService.verifyRefreshToken(refreshTokenStr);
+		refreshTokenService.deleteByUser(refreshToken.getUser());
 	}
 }

@@ -74,6 +74,7 @@
 //   );
 // }
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
@@ -81,6 +82,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 export default function ProductCard({ product, openQuickView }) {
   const { cartItems, addToCart, updateQuantity } = useCart();
   const [hover, setHover] = useState(false);
+  const navigate = useNavigate();
 
   if (!product) {
     return (
@@ -92,7 +94,7 @@ export default function ProductCard({ product, openQuickView }) {
     ? `${API_BASE_URL}${product.primaryImageUrl}`
     : "/fallback-product.png";
 
-  // 🔑 check if this product already exists in cart
+  // check if this product already exists in cart
   const inCart = cartItems.find((item) => item.id === product.id);
 
   return (
@@ -100,6 +102,7 @@ export default function ProductCard({ product, openQuickView }) {
       className="bg-white shadow-md rounded-2xl p-4 cursor-pointer relative overflow-hidden transition transform hover:scale-105 hover:shadow-lg"
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
+      onClick={() => navigate(`/product/${product.id}`)}
     >
       <img
         src={imageUrl}
@@ -114,7 +117,7 @@ export default function ProductCard({ product, openQuickView }) {
       {product.categoryName && (
         <p className="text-gray-400 text-xs">{product.categoryName}</p>
       )}
-      <p className="text-gray-500 text-sm">{product.description}</p>
+      <p className="text-gray-500 text-sm line-clamp-2">{product.description}</p>
 
       <div className="flex justify-between items-center mt-2">
         <span className="text-lg font-semibold">
@@ -125,25 +128,23 @@ export default function ProductCard({ product, openQuickView }) {
       {hover && (
         <div className="absolute inset-0 bg-black bg-opacity-30 flex flex-col justify-center items-center gap-2 transition pointer-events-none">
           {!inCart ? (
-            // 🔹 Show Add to Cart if not yet added
             <button
-              onClick={() => addToCart(product)}
+              onClick={(e) => { e.stopPropagation(); addToCart(product); }}
               className="bg-green-600 text-white px-4 py-1 rounded-xl hover:bg-green-700 pointer-events-auto"
             >
               Add to Cart
             </button>
           ) : (
-            // 🔹 Show + / - if already in cart
             <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl shadow-md pointer-events-auto">
               <button
-                onClick={() => updateQuantity(product.id, -1)}
+                onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, -1); }}
                 className="bg-gray-200 text-gray-700 px-2 py-1 rounded hover:bg-gray-300"
               >
                 −
               </button>
               <span className="font-medium">{inCart.quantity}</span>
               <button
-                onClick={() => updateQuantity(product.id, 1)}
+                onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, 1); }}
                 className="bg-gray-200 text-gray-700 px-2 py-1 rounded hover:bg-gray-300"
               >
                 +
@@ -151,10 +152,10 @@ export default function ProductCard({ product, openQuickView }) {
             </div>
           )}
           <button
-            onClick={() => openQuickView && openQuickView(product.id)}
+            onClick={(e) => { e.stopPropagation(); navigate(`/product/${product.id}`); }}
             className="bg-white text-gray-700 px-4 py-1 rounded-xl hover:bg-gray-100 pointer-events-auto"
           >
-            Quick View
+            View Details
           </button>
         </div>
       )}

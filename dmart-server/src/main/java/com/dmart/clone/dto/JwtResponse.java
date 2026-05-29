@@ -1,4 +1,4 @@
 package com.dmart.clone.dto;
 
-public record JwtResponse(String token, String username, String role, long expiresAt) {
+public record JwtResponse(String token, String refreshToken, String username, String role, long expiresAt) {
 }

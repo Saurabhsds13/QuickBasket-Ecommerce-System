@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { login as loginAPI, register as registerAPI, getMyProfile } from "../services/api";
+import { login as loginAPI, register as registerAPI, getMyProfile, logoutAPI } from "../services/api";
 
 const AuthContext = createContext();
 
@@ -29,9 +29,10 @@ export const AuthProvider = ({ children }) => {
     setError("");
     try {
       const res = await loginAPI(username, password);
-      const { token: jwt, username: uname, role, expiry } = res.data;
+      const { token: jwt, refreshToken: refresh, username: uname, role, expiresAt } = res.data;
 
       localStorage.setItem("token", jwt);
+      localStorage.setItem("refreshToken", refresh);
       localStorage.setItem("user", JSON.stringify({ username: uname, role }));
 
       setToken(jwt);
@@ -61,9 +62,18 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    const refresh = localStorage.getItem("refreshToken");
+    if (refresh) {
+      try {
+        await logoutAPI(refresh);
+      } catch (err) {
+        // Ignore logout API errors
+      }
+    }
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("refreshToken");
     setToken(null);
     setUser(null);
   }, []);

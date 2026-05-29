@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useCart } from "../context/CartContext";
 import { useNavigate } from "react-router-dom";
-import { placeOrder, applyCoupon } from "../services/api";
+import { placeOrder, applyCoupon, createPaymentOrder, verifyPayment } from "../services/api";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
@@ -9,6 +9,7 @@ export default function CheckoutPage() {
   const { cartItems, subtotal, deliveryCharge, savings, total, clearCart } = useCart();
   const navigate = useNavigate();
   const [placing, setPlacing] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("ONLINE");
   const [couponCode, setCouponCode] = useState("");
   const [couponResult, setCouponResult] = useState(null);
   const [couponError, setCouponError] = useState("");
@@ -16,10 +17,61 @@ export default function CheckoutPage() {
   const handlePlaceOrder = async () => {
     try {
       setPlacing(true);
-      const res = await placeOrder();
-      const orderId = res.data?.id || res.data?.orderId;
-      clearCart();
-      navigate("/order-confirmation", { state: { orderId } });
+      // Step 1: Place order in backend
+      const orderRes = await placeOrder();
+      const orderId = orderRes.data?.id;
+
+      if (paymentMethod === "COD") {
+        // Cash on Delivery — just confirm
+        clearCart();
+        navigate("/order-confirmation", { state: { orderId } });
+        return;
+      }
+
+      // Step 2: Create Razorpay payment order
+      const paymentRes = await createPaymentOrder(orderId);
+      const { razorpayOrderId, amount, currency, keyId } = paymentRes.data;
+
+      // Step 3: Open Razorpay checkout
+      const options = {
+        key: keyId,
+        amount: amount * 100, // in paise
+        currency: currency,
+        name: "QuickBasket",
+        description: `Order #${orderId}`,
+        order_id: razorpayOrderId,
+        handler: async function (response) {
+          // Step 4: Verify payment
+          try {
+            await verifyPayment({
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
+              orderId: orderId,
+            });
+            clearCart();
+            navigate("/order-confirmation", { state: { orderId } });
+          } catch (err) {
+            alert("Payment verification failed. Contact support.");
+          }
+        },
+        prefill: {
+          name: "Customer",
+          email: "customer@example.com",
+        },
+        theme: {
+          color: "#16a34a",
+        },
+        modal: {
+          ondismiss: function () {
+            alert("Payment cancelled. Your order is saved as pending.");
+            navigate("/orders");
+          },
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
     } catch (err) {
       console.error("Failed to place order:", err);
       alert(err.response?.data?.message || "Failed to place order. Please try again.");
@@ -67,15 +119,11 @@ export default function CheckoutPage() {
               </h2>
               <div className="space-y-3">
                 <label className="flex items-center gap-3 p-3 border rounded-lg hover:border-green-500 transition cursor-pointer">
-                  <input type="radio" name="payment" defaultChecked />
-                  <span className="text-gray-700">💳 Credit / Debit Card</span>
+                  <input type="radio" name="payment" value="ONLINE" checked={paymentMethod === "ONLINE"} onChange={(e) => setPaymentMethod(e.target.value)} />
+                  <span className="text-gray-700">💳 Pay Online (Razorpay)</span>
                 </label>
                 <label className="flex items-center gap-3 p-3 border rounded-lg hover:border-green-500 transition cursor-pointer">
-                  <input type="radio" name="payment" />
-                  <span className="text-gray-700">📱 UPI / Wallets</span>
-                </label>
-                <label className="flex items-center gap-3 p-3 border rounded-lg hover:border-green-500 transition cursor-pointer">
-                  <input type="radio" name="payment" />
+                  <input type="radio" name="payment" value="COD" checked={paymentMethod === "COD"} onChange={(e) => setPaymentMethod(e.target.value)} />
                   <span className="text-gray-700">💵 Cash on Delivery</span>
                 </label>
               </div>
