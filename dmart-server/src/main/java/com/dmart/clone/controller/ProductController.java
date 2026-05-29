@@ -2,6 +2,10 @@ package com.dmart.clone.controller;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,7 +35,6 @@ public class ProductController {
 
 	@GetMapping("/{id}")
 	public ResponseEntity<ProductViewDto> getProductById(@PathVariable Long id) {
-		// If you prefer not to expose entity here, map to a detailed DTO instead.
 		ProductViewDto p = productService.getById(id);
 		return ResponseEntity.ok(p);
 	}
@@ -40,5 +43,25 @@ public class ProductController {
 	public ResponseEntity<List<ProductViewDto>> getProductsByCategory(@RequestParam("categoryId") Long categoryId) {
 		List<ProductViewDto> products = productService.getProductsByCategory(categoryId);
 		return ResponseEntity.ok(products);
+	}
+
+	@GetMapping("/search")
+	public ResponseEntity<Page<ProductViewDto>> searchProducts(
+			@RequestParam(required = false) String keyword,
+			@RequestParam(required = false) Long categoryId,
+			@RequestParam(required = false) Double minPrice,
+			@RequestParam(required = false) Double maxPrice,
+			@RequestParam(defaultValue = "createdAt") String sortBy,
+			@RequestParam(defaultValue = "desc") String sortDir,
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "12") int size) {
+
+		Sort sort = sortDir.equalsIgnoreCase("asc")
+				? Sort.by(sortBy).ascending()
+				: Sort.by(sortBy).descending();
+		Pageable pageable = PageRequest.of(page, Math.min(size, 50), sort);
+
+		Page<ProductViewDto> results = productService.searchProducts(keyword, categoryId, minPrice, maxPrice, pageable);
+		return ResponseEntity.ok(results);
 	}
 }

@@ -1,6 +1,7 @@
 package com.dmart.clone.service;
 
 import com.dmart.clone.dto.RegisterRequest;
+import com.dmart.clone.dto.UserProfileUpdateDto;
 import com.dmart.clone.dto.UserViewDto;
 import com.dmart.clone.model.User;
 
@@ -13,4 +14,6 @@ public interface UserService {
 	User getCurrentUser(HttpServletRequest request);
 
 	UserViewDto getUserByUsername(String username);
+
+	UserViewDto updateProfile(User user, UserProfileUpdateDto dto);
 }

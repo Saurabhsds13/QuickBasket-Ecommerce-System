@@ -1,10 +1,13 @@
 package com.dmart.clone.service;
 
+import java.time.Instant;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.dmart.clone.dto.RegisterRequest;
+import com.dmart.clone.dto.UserProfileUpdateDto;
 import com.dmart.clone.dto.UserViewDto;
 import com.dmart.clone.model.Role;
 import com.dmart.clone.model.User;
@@ -23,7 +26,7 @@ public class UserServiceImpl implements UserService {
 	private JwtUtil jwtUtil;
 
 	@Autowired
-	private PasswordEncoder passwordEncoder; // configure a BCryptPasswordEncoder bean
+	private PasswordEncoder passwordEncoder;
 
 	@Override
 	public UserViewDto register(RegisterRequest request) {
@@ -37,11 +40,13 @@ public class UserServiceImpl implements UserService {
 		user.setPassword(passwordEncoder.encode(request.password()));
 		user.setPhone(request.phone());
 		user.setRole(Role.USER);
+		user.setCreatedAt(Instant.now());
+		user.setUpdatedAt(Instant.now());
 
 		User saved = userRepository.save(user);
 
 		return new UserViewDto(saved.getId(), saved.getUsername(), saved.getEmail(), saved.getPhone(), saved.getRole(),
-				user.isBlocked(), user.getCreatedAt());
+				saved.isBlocked(), saved.getCreatedAt());
 	}
 
 	@Override
@@ -55,7 +60,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public User getCurrentUser(HttpServletRequest request) {
-		String header = request.getHeader("Authorization").substring(7);
+		String header = request.getHeader("Authorization");
 		if (header == null || !header.startsWith("Bearer ")) {
 			throw new RuntimeException("Missing or invalid Authorization header");
 		}
@@ -67,4 +72,33 @@ public class UserServiceImpl implements UserService {
 				.orElseThrow(() -> new RuntimeException("User not found: " + username));
 	}
 
+	@Override
+	public UserViewDto updateProfile(User user, UserProfileUpdateDto dto) {
+		if (dto.email() != null && !dto.email().isBlank()) {
+			// Check if email is already taken by another user
+			userRepository.findByEmail(dto.email()).ifPresent(existing -> {
+				if (!existing.getId().equals(user.getId())) {
+					throw new RuntimeException("Email already in use by another account");
+				}
+			});
+			user.setEmail(dto.email());
+		}
+
+		if (dto.phone() != null && !dto.phone().isBlank()) {
+			user.setPhone(dto.phone());
+		}
+
+		if (dto.newPassword() != null && !dto.newPassword().isBlank()) {
+			if (dto.currentPassword() == null || !passwordEncoder.matches(dto.currentPassword(), user.getPassword())) {
+				throw new RuntimeException("Current password is incorrect");
+			}
+			user.setPassword(passwordEncoder.encode(dto.newPassword()));
+		}
+
+		user.setUpdatedAt(Instant.now());
+		User saved = userRepository.save(user);
+
+		return new UserViewDto(saved.getId(), saved.getUsername(), saved.getEmail(), saved.getPhone(), saved.getRole(),
+				saved.isBlocked(), saved.getCreatedAt());
+	}
 }

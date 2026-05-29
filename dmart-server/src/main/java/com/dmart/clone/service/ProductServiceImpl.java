@@ -5,6 +5,8 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,17 +46,6 @@ public class ProductServiceImpl implements ProductService {
 		return mapToProductViewDto(product);
 	}
 
-	// ✅ common mapper extracted
-	private ProductViewDto mapToProductViewDto(Product product) {
-		String primaryImageUrl = productImageService.getImagesByProduct(product).stream()
-				.filter(img -> Boolean.TRUE.equals(img.getIsPrimary())).map(ProductImage::getImageUrl).findFirst()
-				.orElse(null);
-
-		return new ProductViewDto(product.getId(), product.getName(), product.getDescription(),
-				product.getCategory() != null ? product.getCategory().getName() : null, product.getPrice(),
-				product.getStockQuantity(), primaryImageUrl);
-	}
-
 	@Override
 	public List<ProductViewDto> getProductsByCategory(Long categoryId) {
 		log.info("Fetching products for categoryId={}", categoryId);
@@ -65,5 +56,24 @@ public class ProductServiceImpl implements ProductService {
 		}
 
 		return products.stream().map(this::mapToProductViewDto).collect(Collectors.toList());
+	}
+
+	@Override
+	public Page<ProductViewDto> searchProducts(String keyword, Long categoryId, Double minPrice, Double maxPrice, Pageable pageable) {
+		log.info("Searching products: keyword={}, categoryId={}, minPrice={}, maxPrice={}", keyword, categoryId, minPrice, maxPrice);
+
+		Page<Product> products = productRepository.searchProducts(keyword, categoryId, minPrice, maxPrice, pageable);
+		return products.map(this::mapToProductViewDto);
+	}
+
+	// common mapper extracted
+	private ProductViewDto mapToProductViewDto(Product product) {
+		String primaryImageUrl = productImageService.getImagesByProduct(product).stream()
+				.filter(img -> Boolean.TRUE.equals(img.getIsPrimary())).map(ProductImage::getImageUrl).findFirst()
+				.orElse(null);
+
+		return new ProductViewDto(product.getId(), product.getName(), product.getDescription(),
+				product.getCategory() != null ? product.getCategory().getName() : null, product.getPrice(),
+				product.getStockQuantity(), primaryImageUrl);
 	}
 }

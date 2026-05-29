@@ -1,10 +1,14 @@
 package com.dmart.clone.service;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.dmart.clone.dto.OrderDto;
+import com.dmart.clone.exception.ResourceNotFoundException;
 import com.dmart.clone.model.CartItem;
 import com.dmart.clone.model.Order;
 import com.dmart.clone.model.OrderItem;
@@ -29,6 +33,8 @@ public class OrderServiceImpl implements OrderService {
 
 		Order order = new Order();
 		order.setUser(user);
+		order.setCreatedAt(Instant.now());
+		order.setUpdatedAt(Instant.now());
 
 		List<OrderItem> orderItems = cartItems.stream().map(ci -> {
 
@@ -47,5 +53,35 @@ public class OrderServiceImpl implements OrderService {
 		orderRepository.save(order);
 		cartRepository.deleteAll(cartItems); // clear cart after order
 		return order;
+	}
+
+	@Override
+	public List<OrderDto> getOrdersByUser(User user) {
+		return orderRepository.findByUserOrderByCreatedAtDesc(user).stream()
+				.map(this::mapToDto)
+				.collect(Collectors.toList());
+	}
+
+	@Override
+	public OrderDto getOrderById(User user, Long orderId) {
+		Order order = orderRepository.findById(orderId)
+				.orElseThrow(() -> new ResourceNotFoundException("Order not found with id=" + orderId));
+
+		if (!order.getUser().getId().equals(user.getId())) {
+			throw new RuntimeException("You can only view your own orders");
+		}
+
+		return mapToDto(order);
+	}
+
+	private OrderDto mapToDto(Order order) {
+		return new OrderDto(
+				order.getId(),
+				order.getUser().getUsername(),
+				order.getTotalPrice(),
+				order.getStatus(),
+				order.getCreatedAt(),
+				order.getUpdatedAt()
+		);
 	}
 }
