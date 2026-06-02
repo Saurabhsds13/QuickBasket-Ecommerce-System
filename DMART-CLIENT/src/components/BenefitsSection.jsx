@@ -2,90 +2,59 @@ const benefits = [
   {
     icon: "🍎",
     title: "Farm-Fresh Products",
-    description:
-      "Hand-picked fruits and vegetables delivered directly from farms.",
+    description: "Hand-picked fruits and vegetables delivered directly from local farms.",
+    color: "bg-red-50",
   },
   {
     icon: "⚡",
-    title: "Fast Delivery",
-    description:
-      "Get your groceries delivered within hours, right at your doorstep.",
+    title: "20-Min Delivery",
+    description: "Lightning-fast delivery right to your doorstep, every single time.",
+    color: "bg-yellow-50",
   },
   {
     icon: "🛡️",
-    title: "Premium Quality",
-    description: "Only the best quality products for your healthy lifestyle.",
+    title: "Quality Guaranteed",
+    description: "Only the best quality products. Not happy? Get a full refund.",
+    color: "bg-blue-50",
   },
   {
     icon: "🌱",
-    title: "Sustainable Practices",
-    description: "Eco-friendly packaging and support for local farmers.",
+    title: "Eco-Friendly",
+    description: "Sustainable packaging and support for local farming communities.",
+    color: "bg-green-50",
   },
 ];
 
 const BenefitsSection = () => {
   return (
-    <section className="relative py-20 overflow-hidden">
-      {/* Diagonal Split Background */}
-      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-green-50 via-white to-green-100 rotate-2 transform origin-top-left pointer-events-none"></div>
-
-      <div className="relative z-10 max-w-6xl mx-auto px-6 lg:px-20">
-        <h2 className="text-4xl md:text-5xl font-extrabold text-gray-800 text-center mb-12">
-          Why Choose Us
+    <section className="py-20">
+      <div className="text-center mb-12">
+        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
+          Why Choose QuickBasket
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
-          {benefits.map((benefit, idx) => (
-            <div
-              key={idx}
-              className="bg-white rounded-3xl shadow-lg p-8 text-center transition-transform transform hover:-translate-y-3 hover:shadow-2xl relative overflow-hidden"
-            >
-              {/* Animated Icon Bubble */}
-              <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center text-3xl bg-green-100 rounded-full animate-bounce-slow">
-                {benefit.icon}
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                {benefit.title}
-              </h3>
-              <p className="text-gray-600 text-sm">{benefit.description}</p>
-            </div>
-          ))}
-        </div>
+        <p className="text-gray-500 max-w-lg mx-auto">
+          We're committed to making grocery shopping effortless, affordable, and sustainable.
+        </p>
       </div>
 
-      {/* Subtle Floating Circles */}
-      <div className="absolute top-10 left-10 w-10 h-10 bg-green-200 opacity-20 rounded-full animate-float-slow pointer-events-none"></div>
-      <div className="absolute bottom-20 right-20 w-16 h-16 bg-green-300 opacity-15 rounded-full animate-float-delay pointer-events-none"></div>
-
-      {/* Floating Animation Styles */}
-      <style jsx>{`
-        @keyframes float {
-          0%,
-          100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-15px);
-          }
-        }
-        .animate-float-slow {
-          animation: float 12s ease-in-out infinite;
-        }
-        .animate-float-delay {
-          animation: float 10s ease-in-out 2s infinite;
-        }
-        .animate-bounce-slow {
-          animation: bounce 2.5s infinite;
-        }
-        @keyframes bounce {
-          0%,
-          100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(-10px);
-          }
-        }
-      `}</style>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {benefits.map((benefit, idx) => (
+          <div
+            key={idx}
+            className="group relative bg-white rounded-2xl border border-gray-100 p-7 text-center hover:border-green-200 hover:shadow-xl hover:shadow-green-50 transition-all duration-300 hover:-translate-y-1"
+          >
+            <div className={`w-14 h-14 mx-auto mb-5 flex items-center justify-center text-2xl ${benefit.color} rounded-2xl group-hover:scale-110 transition-transform duration-300`}>
+              {benefit.icon}
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              {benefit.title}
+            </h3>
+            <p className="text-gray-500 text-sm leading-relaxed">
+              {benefit.description}
+            </p>
+          </div>
+        ))}
+      </div>
     </section>
   );
 };

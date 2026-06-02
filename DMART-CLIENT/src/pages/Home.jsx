@@ -1,194 +1,154 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import HeroBanner from "../components/HeroBanner.jsx";
-import Categories from "../components/Categories.jsx";
-import NewsletterSignup from "../components/NewsletterSignup.jsx";
 import BenefitsSection from "../components/BenefitsSection.jsx";
-import PromotionsSection from "../components/PromotionsSection.jsx";
+import NewsletterSignup from "../components/NewsletterSignup.jsx";
+import ProductCard from "../components/ProductCard.jsx";
+import { getProducts, getCategories } from "../services/api";
 
 export default function Home() {
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [productsRes, categoriesRes] = await Promise.all([
+          getProducts(),
+          getCategories(),
+        ]);
+        setFeaturedProducts(productsRes.data.slice(0, 8)); // Show first 8
+        setCategories(categoriesRes.data.slice(0, 6)); // Show first 6
+      } catch (err) {
+        console.error("Error fetching home data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   return (
-    <main className="max-w-7xl mx-auto mt-4 px-4">
+    <main className="max-w-7xl mx-auto px-4">
+      {/* Hero */}
       <HeroBanner />
-      <Categories
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-      />
+
       {/* Categories Section */}
-      <section className="py-16 px-4 md:px-8 lg:px-16">
-        <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-10">
-          Explore Our Categories
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Category Card 1: Fresh Produce */}
-          <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out overflow-hidden transform hover:-translate-y-2 cursor-pointer">
-            <img
-              src="https://placehold.co/600x400/9AE6B4/2D3748?text=Fresh+Produce"
-              alt="Fresh Produce"
-              className="w-full h-48 object-cover rounded-t-xl"
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src =
-                  "https://placehold.co/600x400/9AE6B4/2D3748?text=Image+Not+Found";
-              }}
-            />
-            <div className="p-5">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Fresh Produce
-              </h3>
-              <p className="text-gray-600 text-sm">
-                Organic fruits, seasonal vegetables, herbs
-              </p>
-              <button className="mt-5 w-full bg-green-600 text-white py-2.5 px-4 rounded-full hover:bg-green-700 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500">
-                Shop Produce
-              </button>
-            </div>
+      <section className="py-16">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h2 className="text-3xl font-bold text-gray-900">Shop by Category</h2>
+            <p className="text-gray-500 mt-1">Browse our wide selection of fresh groceries</p>
           </div>
-
-          {/* Category Card 2: Dairy & Bakery */}
-          <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out overflow-hidden transform hover:-translate-y-2 cursor-pointer">
-            <img
-              src="https://placehold.co/600x400/BEE3F8/2D3748?text=Dairy+%26+Bakery"
-              alt="Dairy & Bakery"
-              className="w-full h-48 object-cover rounded-t-xl"
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src =
-                  "https://placehold.co/600x400/BEE3F8/2D3748?text=Image+Not+Found";
-              }}
-            />
-            <div className="p-5">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Dairy & Bakery
-              </h3>
-              <p className="text-gray-600 text-sm">
-                Fresh milk, artisan breads, pastries, eggs
-              </p>
-              <button className="mt-5 w-full bg-green-600 text-white py-2.5 px-4 rounded-full hover:bg-green-700 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500">
-                Shop Dairy
-              </button>
-            </div>
-          </div>
-
-          {/* Category Card 3: Pantry Staples */}
-          <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out overflow-hidden transform hover:-translate-y-2 cursor-pointer">
-            <img
-              src="https://placehold.co/600x400/FEF3C7/2D3748?text=Pantry+Staples"
-              alt="Pantry Staples"
-              className="w-full h-48 object-cover rounded-t-xl"
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src =
-                  "https://placehold.co/600x400/FEF3C7/2D3748?text=Image+Not+Found";
-              }}
-            />
-            <div className="p-5">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Pantry Staples
-              </h3>
-              <p className="text-gray-600 text-sm">
-                Grains, spices, oils, pasta, canned goods
-              </p>
-              <button className="mt-5 w-full bg-green-600 text-white py-2.5 px-4 rounded-full hover:bg-green-700 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500">
-                Shop Pantry
-              </button>
-            </div>
-          </div>
-
-          {/* Category Card 4: Beverages */}
-          <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out overflow-hidden transform hover:-translate-y-2 cursor-pointer">
-            <img
-              src="https://placehold.co/600x400/D1FAE5/2D3748?text=Beverages"
-              alt="Beverages"
-              className="w-full h-48 object-cover rounded-t-xl"
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src =
-                  "https://placehold.co/600x400/D1FAE5/2D3748?text=Image+Not+Found";
-              }}
-            />
-            <div className="p-5">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Beverages
-              </h3>
-              <p className="text-gray-600 text-sm">
-                Juices, sodas, coffee, tea, water
-              </p>
-              <button className="mt-5 w-full bg-green-600 text-white py-2.5 px-4 rounded-full hover:bg-green-700 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500">
-                Shop Beverages
-              </button>
-            </div>
-          </div>
+          <button
+            onClick={() => navigate("/AllProducts")}
+            className="hidden md:flex items-center gap-1 text-green-600 font-medium hover:text-green-700 transition"
+          >
+            View All
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         </div>
+
+        {categories.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            {categories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => navigate(`/AllProducts?category=${category.id}`)}
+                className="group flex flex-col items-center gap-3 p-6 bg-white rounded-2xl border border-gray-100 hover:border-green-200 hover:shadow-lg hover:shadow-green-100/50 transition-all duration-300 hover:-translate-y-1"
+              >
+                <div className="w-14 h-14 bg-green-50 group-hover:bg-green-100 rounded-2xl flex items-center justify-center transition-colors duration-300">
+                  <span className="text-2xl">🛒</span>
+                </div>
+                <span className="text-sm font-medium text-gray-700 group-hover:text-green-700 text-center transition-colors">
+                  {category.name}
+                </span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          !loading && <p className="text-gray-400 text-center">No categories available</p>
+        )}
       </section>
-      {/* Featured Products Section */}
-      <section className="py-16 px-4 md:px-8 lg:px-16 bg-[#F4F9F6]">
-        <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-12">
-          Our Best Sellers
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-          {/* Product Card Template */}
-          {[
-            {
-              title: "Organic Gala Apples",
-              category: "Fresh Produce",
-              price: "$3.99/lb",
-              img: "https://placehold.co/600x600/FCA5A5/ffffff?text=Organic+Apples",
-            },
-            {
-              title: "Rustic Sourdough Loaf",
-              category: "Freshly Baked",
-              price: "$5.49",
-              img: "https://placehold.co/600x600/A7F3D0/ffffff?text=Artisanal+Bread",
-            },
-            {
-              title: "Large Free-Range Eggs",
-              category: "Dairy & Eggs",
-              price: "$4.25/dozen",
-              img: "https://placehold.co/600x600/FDBA74/ffffff?text=Free-Range+Eggs",
-            },
-            {
-              title: "Extra Virgin Olive Oil",
-              category: "Pantry Essentials",
-              price: "$12.99",
-              img: "https://placehold.co/600x600/B2F5EA/ffffff?text=Olive+Oil",
-            },
-          ].map((product, idx) => (
-            <div
-              key={idx}
-              className="bg-white rounded-xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 hover:border hover:border-green-200"
-            >
-              <img
-                src={product.img}
-                alt={product.title}
-                className="w-full h-64 object-cover rounded-t-xl"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src =
-                    "https://placehold.co/600x600/cccccc/ffffff?text=Image+Not+Found";
-                }}
-              />
-              <div className="p-5 flex flex-col gap-2">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {product.title}
-                </h3>
-                <p className="text-gray-600 text-sm">{product.category}</p>
-                <div className="flex items-center justify-between mt-2">
-                  <span className="text-green-700 font-bold px-3 py-1 rounded-full bg-green-100">
-                    {product.price}
-                  </span>
-                  <button className="bg-gradient-to-r from-green-500 to-green-600 text-white py-1.5 px-4 rounded-full text-sm shadow-md hover:scale-105 transition-transform duration-300">
-                    Add to Cart
-                  </button>
+
+      {/* Featured Products */}
+      <section className="py-16 border-t border-gray-100">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h2 className="text-3xl font-bold text-gray-900">Featured Products</h2>
+            <p className="text-gray-500 mt-1">Handpicked fresh items just for you</p>
+          </div>
+          <button
+            onClick={() => navigate("/AllProducts")}
+            className="hidden md:flex items-center gap-1 text-green-600 font-medium hover:text-green-700 transition"
+          >
+            See All Products
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="bg-white rounded-2xl border border-gray-100 overflow-hidden animate-pulse">
+                <div className="h-48 bg-gray-100"></div>
+                <div className="p-4 space-y-3">
+                  <div className="h-3 bg-gray-100 rounded w-1/3"></div>
+                  <div className="h-4 bg-gray-100 rounded w-3/4"></div>
+                  <div className="h-3 bg-gray-100 rounded w-full"></div>
+                  <div className="h-5 bg-gray-100 rounded w-1/4 mt-2"></div>
                 </div>
               </div>
+            ))}
+          </div>
+        ) : featuredProducts.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {featuredProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-400 text-center py-12">No products available yet.</p>
+        )}
+
+        {/* Mobile view all button */}
+        <div className="md:hidden text-center mt-8">
+          <button
+            onClick={() => navigate("/AllProducts")}
+            className="bg-green-600 text-white px-8 py-3 rounded-xl font-medium hover:bg-green-700 transition"
+          >
+            View All Products
+          </button>
+        </div>
+      </section>
+
+      {/* Benefits */}
+      <BenefitsSection />
+
+      {/* Stats Section */}
+      <section className="py-16 border-t border-gray-100">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          {[
+            { value: "10K+", label: "Happy Customers" },
+            { value: "500+", label: "Products" },
+            { value: "20 min", label: "Avg Delivery" },
+            { value: "4.8★", label: "App Rating" },
+          ].map((stat, i) => (
+            <div key={i} className="text-center">
+              <p className="text-3xl md:text-4xl font-bold text-green-600">{stat.value}</p>
+              <p className="text-sm text-gray-500 mt-1">{stat.label}</p>
             </div>
           ))}
         </div>
       </section>
-      <BenefitsSection />
-      <PromotionsSection />
+
+      {/* Newsletter */}
       <NewsletterSignup />
     </main>
   );

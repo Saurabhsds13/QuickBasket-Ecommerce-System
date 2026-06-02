@@ -1,164 +1,99 @@
-// import { useState } from "react";
-
-// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
-
-// export default function ProductCard({ product, addToCart, openQuickView }) {
-//   const [hover, setHover] = useState(false);
-
-//   if (!product) {
-//     return (
-//       <div className="p-4 text-red-500">⚠️ Product data not available</div>
-//     );
-//   }
-
-//   const imageUrl = product.primaryImageUrl
-//     ? `${API_BASE_URL}${product.primaryImageUrl}`
-//     : "/fallback-product.png";
-
-    
-//   return (
-//     <div
-//       className="bg-white shadow-md rounded-2xl p-4 cursor-pointer relative overflow-hidden transition transform hover:scale-105 hover:shadow-lg"
-//       onMouseEnter={() => setHover(true)}
-//       onMouseLeave={() => setHover(false)}
-//     >
-//       {/* Product Image */}
-//       <img
-//         src={imageUrl}
-//         alt={product.name || "Product"}
-//         className="w-full h-40 object-contain"
-//         onError={(e) => {
-//           e.currentTarget.src = "/fallback-product.png";
-//         }}
-//       />
-
-//       {/* Product Info */}
-//       <h3 className="text-lg font-medium mt-2">{product.name}</h3>
-//       {product.categoryName && (
-//         <p className="text-gray-400 text-xs">{product.categoryName}</p>
-//       )}
-//       <p className="text-gray-500 text-sm line-clamp-2">
-//         {product.description}
-//       </p>
-
-//       <div className="flex justify-between items-center mt-2">
-//         <span className="text-lg font-semibold">
-//           ₹{product.price ? product.price.toFixed(2) : "N/A"}
-//         </span>
-//       </div>
-
-//       {/* Hover Overlay */}
-//       {hover && (
-//         <div className="absolute inset-0 bg-black bg-opacity-30 flex flex-col justify-center items-center gap-2 transition">
-//           <button
-//             onClick={(e) => {
-//               e.stopPropagation(); // prevent card click issues
-//               addToCart?.(product); // ✅ call passed addToCart
-//             }}
-//             className="bg-green-600 text-white px-4 py-1 rounded-xl hover:bg-green-700"
-//           >
-//             Add to Cart
-//           </button>
-//           <button
-//             onClick={(e) => {
-//               e.stopPropagation();
-//               openQuickView?.(product.id); // ✅ call passed quick view
-//             }}
-//             className="bg-white text-gray-700 px-4 py-1 rounded-xl hover:bg-gray-100"
-//           >
-//             Quick View
-//           </button>
-//         </div>
-//       )}
-//     </div>
-//   );
-// }
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
-export default function ProductCard({ product, openQuickView }) {
+export default function ProductCard({ product }) {
   const { cartItems, addToCart, updateQuantity } = useCart();
-  const [hover, setHover] = useState(false);
   const navigate = useNavigate();
 
   if (!product) {
-    return (
-      <div className="p-4 text-red-500">⚠️ Product data not available</div>
-    );
+    return null;
   }
 
   const imageUrl = product.primaryImageUrl
     ? `${API_BASE_URL}${product.primaryImageUrl}`
     : "/fallback-product.png";
 
-  // check if this product already exists in cart
   const inCart = cartItems.find((item) => item.id === product.id);
 
   return (
     <div
-      className="bg-white shadow-md rounded-2xl p-4 cursor-pointer relative overflow-hidden transition transform hover:scale-105 hover:shadow-lg"
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
+      className="group bg-white rounded-2xl border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-gray-200/50 hover:-translate-y-1 cursor-pointer"
       onClick={() => navigate(`/product/${product.id}`)}
     >
-      <img
-        src={imageUrl}
-        alt={product.name || "Product"}
-        className="w-full h-40 object-contain"
-        onError={(e) => {
-          e.target.src = "/fallback-product.png";
-        }}
-      />
+      {/* Image Container */}
+      <div className="relative bg-gray-50 p-6 flex items-center justify-center h-48 overflow-hidden">
+        <img
+          src={imageUrl}
+          alt={product.name || "Product"}
+          className="max-h-full object-contain transition-transform duration-500 group-hover:scale-110"
+          onError={(e) => { e.target.src = "/fallback-product.png"; }}
+        />
 
-      <h3 className="text-lg font-medium mt-2">{product.name}</h3>
-      {product.categoryName && (
-        <p className="text-gray-400 text-xs">{product.categoryName}</p>
-      )}
-      <p className="text-gray-500 text-sm line-clamp-2">{product.description}</p>
-
-      <div className="flex justify-between items-center mt-2">
-        <span className="text-lg font-semibold">
-          ₹{product.price?.toFixed(2) || "N/A"}
-        </span>
-      </div>
-
-      {hover && (
-        <div className="absolute inset-0 bg-black bg-opacity-30 flex flex-col justify-center items-center gap-2 transition pointer-events-none">
+        {/* Quick add overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
           {!inCart ? (
             <button
               onClick={(e) => { e.stopPropagation(); addToCart(product); }}
-              className="bg-green-600 text-white px-4 py-1 rounded-xl hover:bg-green-700 pointer-events-auto"
+              className="bg-white text-green-700 font-medium px-5 py-2 rounded-full text-sm shadow-lg hover:bg-green-600 hover:text-white transition-all duration-200 transform translate-y-4 group-hover:translate-y-0"
             >
-              Add to Cart
+              + Add to Cart
             </button>
           ) : (
-            <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl shadow-md pointer-events-auto">
+            <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-full shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform duration-200">
               <button
                 onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, -1); }}
-                className="bg-gray-200 text-gray-700 px-2 py-1 rounded hover:bg-gray-300"
+                className="w-7 h-7 flex items-center justify-center bg-gray-100 rounded-full text-gray-700 hover:bg-red-100 hover:text-red-600 transition"
               >
                 −
               </button>
-              <span className="font-medium">{inCart.quantity}</span>
+              <span className="font-semibold text-gray-800 min-w-[20px] text-center">{inCart.quantity}</span>
               <button
                 onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, 1); }}
-                className="bg-gray-200 text-gray-700 px-2 py-1 rounded hover:bg-gray-300"
+                className="w-7 h-7 flex items-center justify-center bg-gray-100 rounded-full text-gray-700 hover:bg-green-100 hover:text-green-600 transition"
               >
                 +
               </button>
             </div>
           )}
-          <button
-            onClick={(e) => { e.stopPropagation(); navigate(`/product/${product.id}`); }}
-            className="bg-white text-gray-700 px-4 py-1 rounded-xl hover:bg-gray-100 pointer-events-auto"
-          >
-            View Details
-          </button>
         </div>
-      )}
+
+        {/* Stock badge */}
+        {product.stockQuantity !== undefined && product.stockQuantity <= 5 && product.stockQuantity > 0 && (
+          <span className="absolute top-3 left-3 bg-orange-100 text-orange-700 text-xs font-medium px-2.5 py-1 rounded-full">
+            Only {product.stockQuantity} left
+          </span>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="p-4 space-y-2">
+        {product.categoryName && (
+          <p className="text-xs font-medium text-green-600 uppercase tracking-wide">
+            {product.categoryName}
+          </p>
+        )}
+        <h3 className="font-semibold text-gray-800 text-base leading-snug line-clamp-1 group-hover:text-green-700 transition-colors">
+          {product.name}
+        </h3>
+        {product.description && (
+          <p className="text-gray-500 text-sm line-clamp-2 leading-relaxed">
+            {product.description}
+          </p>
+        )}
+        <div className="flex items-center justify-between pt-2">
+          <span className="text-xl font-bold text-gray-900">
+            ₹{product.price?.toFixed(2)}
+          </span>
+          {inCart && (
+            <span className="text-xs bg-green-50 text-green-700 px-2.5 py-1 rounded-full font-medium">
+              In cart: {inCart.quantity}
+            </span>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
