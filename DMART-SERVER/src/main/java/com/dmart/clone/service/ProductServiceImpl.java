@@ -59,10 +59,17 @@ public class ProductServiceImpl implements ProductService {
 	}
 
 	@Override
-	public Page<ProductViewDto> searchProducts(String keyword, Long categoryId, Double minPrice, Double maxPrice, Pageable pageable) {
-		log.info("Searching products: keyword={}, categoryId={}, minPrice={}, maxPrice={}", keyword, categoryId, minPrice, maxPrice);
+	public Page<ProductViewDto> searchProducts(String keyword, Long categoryId, Double minPrice, Double maxPrice,
+			Pageable pageable) {
+		log.info("Searching products: keyword={}, categoryId={}, minPrice={}, maxPrice={}", keyword, categoryId,
+				minPrice, maxPrice);
 
-		Page<Product> products = productRepository.searchProducts(keyword, categoryId, minPrice, maxPrice, pageable);
+		String formattedKeyword = (keyword != null && !keyword.trim().isEmpty())
+				? "%" + keyword.toLowerCase().trim() + "%"
+				: null;
+
+		Page<Product> products = productRepository.searchProducts(formattedKeyword, categoryId, minPrice, maxPrice,
+				pageable);
 		return products.map(this::mapToProductViewDto);
 	}
 

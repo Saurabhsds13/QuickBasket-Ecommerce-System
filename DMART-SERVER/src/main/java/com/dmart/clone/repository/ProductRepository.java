@@ -16,16 +16,19 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
 	List<Product> findByCategoryId(Long categoryId);
 
-	@Query("SELECT p FROM Product p WHERE " +
-			"(:keyword IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
-			"OR LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+	@Query(
+		value = "SELECT p FROM Product p WHERE " +
+			"(:keyword IS NULL OR LOWER(p.name) LIKE CONCAT('%', LOWER(:keyword), '%') OR LOWER(CAST(p.description AS String)) LIKE CONCAT('%', LOWER(:keyword), '%')) " +
 			"AND (:categoryId IS NULL OR p.category.id = :categoryId) " +
 			"AND (:minPrice IS NULL OR p.price >= :minPrice) " +
-			"AND (:maxPrice IS NULL OR p.price <= :maxPrice)")
-	Page<Product> searchProducts(
-			@Param("keyword") String keyword,
-			@Param("categoryId") Long categoryId,
-			@Param("minPrice") Double minPrice,
-			@Param("maxPrice") Double maxPrice,
-			Pageable pageable);
+			"AND (:maxPrice IS NULL OR p.price <= :maxPrice)",
+		countQuery = "SELECT COUNT(p) FROM Product p WHERE " +
+			"(:keyword IS NULL OR LOWER(p.name) LIKE CONCAT('%', LOWER(:keyword), '%') OR LOWER(CAST(p.description AS String)) LIKE CONCAT('%', LOWER(:keyword), '%')) " +
+			"AND (:categoryId IS NULL OR p.category.id = :categoryId) " +
+			"AND (:minPrice IS NULL OR p.price >= :minPrice) " +
+			"AND (:maxPrice IS NULL OR p.price <= :maxPrice)"
+	)
+	Page<Product> searchProducts(@Param("keyword") String keyword, @Param("categoryId") Long categoryId,
+			@Param("minPrice") Double minPrice, @Param("maxPrice") Double maxPrice, Pageable pageable);
+
 }
