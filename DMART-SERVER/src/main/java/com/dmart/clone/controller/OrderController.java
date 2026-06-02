@@ -29,9 +29,18 @@ public class OrderController {
 	private UserService userService;
 
 	@PostMapping("/place")
-	public Order placeOrder(HttpServletRequest request) {
+	public ResponseEntity<OrderDto> placeOrder(HttpServletRequest request) {
 		User user = userService.getCurrentUser(request);
-		return orderService.placeOrder(user);
+		Order order = orderService.placeOrder(user);
+		OrderDto dto = new OrderDto(
+				order.getId(),
+				user.getUsername(),
+				order.getTotalPrice(),
+				order.getStatus(),
+				order.getCreatedAt(),
+				order.getUpdatedAt()
+		);
+		return ResponseEntity.ok(dto);
 	}
 
 	@GetMapping

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import AuthModal from "./AuthModal";
 import CartDrawer from "./CartDrawer";
 import { useCart } from "../context/CartContext";
@@ -37,14 +37,14 @@ const Navbar = () => {
         <div className="container mx-auto flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center space-x-2 md:space-x-14">
-            <a href="/" className="flex items-center space-x-1">
+            <Link to="/" className="flex items-center space-x-1">
               <svg className="w-7 h-7 text-green-600" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
               </svg>
               <span className="text-xl font-extrabold text-gray-900 tracking-wide">
                 Quick<span className="text-green-600">Basket</span>
               </span>
-            </a>
+            </Link>
           </div>
 
           {/* Desktop Section */}
@@ -67,9 +67,9 @@ const Navbar = () => {
 
             {/* Nav Links */}
             <div className="flex items-center space-x-6 text-sm font-medium text-gray-700">
-              <a href="/AllProducts" className="hover:text-green-600 transition-colors">Products</a>
-              <a href="/About" className="hover:text-green-600 transition-colors">About</a>
-              <a href="/Contact" className="hover:text-green-600 transition-colors">Contact</a>
+              <Link to="/AllProducts" className="hover:text-green-600 transition-colors">Products</Link>
+              <Link to="/About" className="hover:text-green-600 transition-colors">About</Link>
+              <Link to="/Contact" className="hover:text-green-600 transition-colors">Contact</Link>
             </div>
 
             {/* User Menu */}
@@ -89,9 +89,9 @@ const Navbar = () => {
 
                 {showUserMenu && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
-                    <a href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-green-600">My Profile</a>
-                    <a href="/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-green-600">My Orders</a>
-                    <a href="/wishlist" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-green-600">Wishlist</a>
+                    <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-green-600">My Profile</Link>
+                    <Link to="/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-green-600">My Orders</Link>
+                    <Link to="/wishlist" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-green-600">Wishlist</Link>
                     <hr className="my-1" />
                     <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Sign Out</button>
                   </div>
@@ -170,14 +170,14 @@ const Navbar = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </form>
-            <a href="/AllProducts" className="block px-3 py-2 text-gray-700 hover:text-green-600">Products</a>
-            <a href="/About" className="block px-3 py-2 text-gray-700 hover:text-green-600">About</a>
-            <a href="/Contact" className="block px-3 py-2 text-gray-700 hover:text-green-600">Contact</a>
+            <Link to="/AllProducts" className="block px-3 py-2 text-gray-700 hover:text-green-600">Products</Link>
+            <Link to="/About" className="block px-3 py-2 text-gray-700 hover:text-green-600">About</Link>
+            <Link to="/Contact" className="block px-3 py-2 text-gray-700 hover:text-green-600">Contact</Link>
             {isAuthenticated ? (
               <>
-                <a href="/profile" className="block px-3 py-2 text-gray-700 hover:text-green-600">My Profile</a>
-                <a href="/orders" className="block px-3 py-2 text-gray-700 hover:text-green-600">My Orders</a>
-                <a href="/wishlist" className="block px-3 py-2 text-gray-700 hover:text-green-600">Wishlist</a>
+                <Link to="/profile" className="block px-3 py-2 text-gray-700 hover:text-green-600">My Profile</Link>
+                <Link to="/orders" className="block px-3 py-2 text-gray-700 hover:text-green-600">My Orders</Link>
+                <Link to="/wishlist" className="block px-3 py-2 text-gray-700 hover:text-green-600">Wishlist</Link>
                 <button onClick={handleLogout} className="block w-full text-left px-3 py-2 text-red-600">Sign Out</button>
               </>
             ) : (

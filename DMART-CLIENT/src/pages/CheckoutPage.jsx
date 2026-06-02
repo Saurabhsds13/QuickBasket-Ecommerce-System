@@ -2,12 +2,14 @@ import { useState } from "react";
 import { useCart } from "../context/CartContext";
 import { useNavigate } from "react-router-dom";
 import { placeOrder, applyCoupon, createPaymentOrder, verifyPayment } from "../services/api";
+import { useToast } from "../components/Toast";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
 export default function CheckoutPage() {
   const { cartItems, subtotal, deliveryCharge, savings, total, clearCart } = useCart();
   const navigate = useNavigate();
+  const toast = useToast();
   const [placing, setPlacing] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("ONLINE");
   const [couponCode, setCouponCode] = useState("");
@@ -52,7 +54,7 @@ export default function CheckoutPage() {
             clearCart();
             navigate("/order-confirmation", { state: { orderId } });
           } catch (err) {
-            alert("Payment verification failed. Contact support.");
+            toast.error("Payment verification failed. Contact support.");
           }
         },
         prefill: {
@@ -64,7 +66,7 @@ export default function CheckoutPage() {
         },
         modal: {
           ondismiss: function () {
-            alert("Payment cancelled. Your order is saved as pending.");
+            toast.warning("Payment cancelled. Your order is saved as pending.");
             navigate("/orders");
           },
         },
@@ -74,7 +76,7 @@ export default function CheckoutPage() {
       razorpay.open();
     } catch (err) {
       console.error("Failed to place order:", err);
-      alert(err.response?.data?.message || "Failed to place order. Please try again.");
+      toast.error(err.response?.data?.message || "Failed to place order. Please try again.");
     } finally {
       setPlacing(false);
     }

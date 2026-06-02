@@ -11,6 +11,7 @@ import {
 } from "../services/api";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../components/Toast";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
@@ -19,6 +20,7 @@ export default function ProductDetailPage() {
   const navigate = useNavigate();
   const { addToCart, cartItems, updateQuantity } = useCart();
   const { isAuthenticated } = useAuth();
+  const toast = useToast();
 
   const [product, setProduct] = useState(null);
   const [reviews, setReviews] = useState([]);
@@ -75,7 +77,7 @@ export default function ProductDetailPage() {
 
   const handleWishlistToggle = async () => {
     if (!isAuthenticated) {
-      alert("Please sign in to use wishlist");
+      toast.info("Please sign in to use wishlist");
       return;
     }
     try {
