@@ -16,4 +16,6 @@ public interface UserService {
 	UserViewDto getUserByUsername(String username);
 
 	UserViewDto updateProfile(User user, UserProfileUpdateDto dto);
+
+	void deleteAccount(User user);
 }

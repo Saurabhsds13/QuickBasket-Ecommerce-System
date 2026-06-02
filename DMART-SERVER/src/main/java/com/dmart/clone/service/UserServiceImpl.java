@@ -5,6 +5,7 @@ import java.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.dmart.clone.dto.RegisterRequest;
 import com.dmart.clone.dto.UserProfileUpdateDto;
@@ -12,15 +13,24 @@ import com.dmart.clone.dto.UserViewDto;
 import com.dmart.clone.model.Role;
 import com.dmart.clone.model.User;
 import com.dmart.clone.repository.UserRepository;
+import com.dmart.clone.repository.CartRepository;
+import com.dmart.clone.repository.RefreshTokenRepository;
 import com.dmart.clone.security.JwtUtil;
 
 import jakarta.servlet.http.HttpServletRequest;
 
 @Service
+@Transactional
 public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private UserRepository userRepository;
+
+	@Autowired
+	private CartRepository cartRepository;
+
+	@Autowired
+	private RefreshTokenRepository refreshTokenRepository;
 
 	@Autowired
 	private JwtUtil jwtUtil;
@@ -100,5 +110,13 @@ public class UserServiceImpl implements UserService {
 
 		return new UserViewDto(saved.getId(), saved.getUsername(), saved.getEmail(), saved.getPhone(), saved.getRole(),
 				saved.isBlocked(), saved.getCreatedAt());
+	}
+
+	@Override
+	public void deleteAccount(User user) {
+		// Clean up related data
+		cartRepository.deleteAll(cartRepository.findByUser(user));
+		refreshTokenRepository.deleteByUser(user);
+		userRepository.delete(user);
 	}
 }

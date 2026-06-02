@@ -1,14 +1,21 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { getMyProfile, updateProfile } from "../services/api";
+import { getMyProfile, updateProfile, deleteAccount } from "../services/api";
+import { useToast } from "../components/Toast";
 
 export default function ProfilePage() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const toast = useToast();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ email: "", phone: "", currentPassword: "", newPassword: "" });
   const [message, setMessage] = useState({ type: "", text: "" });
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -181,6 +188,67 @@ export default function ProfilePage() {
                 </button>
               </div>
             </form>
+          )}
+        </div>
+
+        {/* Danger Zone - Delete Account */}
+        <div className="mt-8 bg-white rounded-xl shadow-sm border border-red-100 p-8">
+          <h3 className="text-lg font-semibold text-red-700 mb-2">Danger Zone</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Permanently delete your account and all associated data. This action cannot be undone.
+          </p>
+
+          {!showDeleteConfirm ? (
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="bg-red-50 text-red-600 px-5 py-2.5 rounded-lg hover:bg-red-100 transition font-medium text-sm border border-red-200"
+            >
+              Delete My Account
+            </button>
+          ) : (
+            <div className="p-4 bg-red-50 rounded-xl border border-red-200 space-y-4">
+              <p className="text-sm text-red-700 font-medium">
+                Type <span className="font-bold">DELETE</span> to confirm account deletion:
+              </p>
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder="Type DELETE"
+                className="w-full px-4 py-2 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-400 focus:border-transparent text-sm"
+              />
+              <div className="flex gap-3">
+                <button
+                  onClick={async () => {
+                    if (deleteConfirmText !== "DELETE") {
+                      toast.error("Please type DELETE to confirm");
+                      return;
+                    }
+                    setDeleting(true);
+                    try {
+                      await deleteAccount();
+                      toast.success("Account deleted successfully");
+                      logout();
+                      navigate("/");
+                    } catch (err) {
+                      toast.error(err.response?.data?.message || "Failed to delete account");
+                    } finally {
+                      setDeleting(false);
+                    }
+                  }}
+                  disabled={deleting || deleteConfirmText !== "DELETE"}
+                  className="bg-red-600 text-white px-5 py-2.5 rounded-lg hover:bg-red-700 transition font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {deleting ? "Deleting..." : "Permanently Delete"}
+                </button>
+                <button
+                  onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(""); }}
+                  className="bg-gray-100 text-gray-700 px-5 py-2.5 rounded-lg hover:bg-gray-200 transition font-medium text-sm"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </div>
