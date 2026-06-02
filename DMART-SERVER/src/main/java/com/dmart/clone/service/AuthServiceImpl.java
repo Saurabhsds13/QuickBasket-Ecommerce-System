@@ -38,14 +38,14 @@ public class AuthServiceImpl implements AuthService {
 	@Override
 	public JwtResponse login(LoginRequest req) {
 		User user = userRepo.findByUsername(req.username())
-				.orElseThrow(() -> new ResourceNotFoundException("User not found with username: " + req.username()));
+				.orElseThrow(() -> new RuntimeException("Invalid username or password"));
 
 		if (!encoder.matches(req.password(), user.getPassword())) {
-			throw new RuntimeException("Bad credentials");
+			throw new RuntimeException("Invalid username or password");
 		}
 
 		if (user.isBlocked()) {
-			throw new RuntimeException("Your account has been blocked. Contact support.");
+			throw new RuntimeException("Your account has been blocked. Please contact support.");
 		}
 
 		String token = jwt.generateToken(user.getUsername(), user.getRole().name());

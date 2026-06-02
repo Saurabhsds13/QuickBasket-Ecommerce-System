@@ -11,7 +11,7 @@ export default function CartDrawer({ isOpen, setIsOpen }) {
     <>
       {/* Overlay */}
       <div
-        className={`fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity duration-300 ${
+        className={`fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity duration-300 z-[60] ${
           isOpen ? "opacity-100 visible" : "opacity-0 invisible"
         }`}
         onClick={() => setIsOpen(false)}
@@ -19,7 +19,7 @@ export default function CartDrawer({ isOpen, setIsOpen }) {
 
       {/* Drawer */}
       <div
-        className={`fixed top-0 right-0 h-full w-96 bg-white shadow-2xl z-50 flex flex-col transform transition-transform duration-300 ${
+        className={`fixed top-0 right-0 h-full w-96 bg-white shadow-2xl z-[70] flex flex-col transform transition-transform duration-300 ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >

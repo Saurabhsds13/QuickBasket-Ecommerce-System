@@ -44,7 +44,8 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthFilter,
 			AuthenticationEntryPoint authEntryPoint) throws Exception {
-		http.csrf(csrf -> csrf.disable())
+		http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+				.csrf(csrf -> csrf.disable())
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers("/api/auth/**", "/api/admin/**", "/api/public/**", "/swagger-ui.html",
 								"/uploads/**", "/swagger-ui/**", "/actuator/health")
@@ -59,7 +60,7 @@ public class SecurityConfig {
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		var cfg = new CorsConfiguration();
-		cfg.setAllowedOrigins(List.of("http://localhost:5173")); // TODO: set your FE domains
+		cfg.setAllowedOrigins(List.of("http://localhost:5173"));
 		cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
 		cfg.setAllowedHeaders(List.of("Authorization", "Content-Type"));
 		cfg.setExposedHeaders(List.of("Authorization"));

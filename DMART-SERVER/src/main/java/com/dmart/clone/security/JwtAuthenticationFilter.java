@@ -14,16 +14,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.dmart.clone.service.CustomUserDetailsService;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
-/**
- * JwtAuthenticationFilter - Extracts Bearer token - Validates token against
- * JwtUtil and UserDetails - Populates SecurityContext with authorities from
- * UserDetails - Writes structured JSON error responses on failure (401/403)
- */
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -45,36 +40,37 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 		final String authHeader = request.getHeader("Authorization");
 		if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-			log.warn("No JWT token found in Authorization header");
 			filterChain.doFilter(request, response);
 			return;
 		}
 
 		final String token = authHeader.substring(7);
-		log.info("Extracted JWT: {}", token);
 
 		try {
 			String username = jwtUtil.extractUsername(token);
-			log.info("Username extracted from token: {}", username);
 
 			if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 				UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-				log.info("Loaded user from DB: {}", userDetails.getUsername());
 
 				if (jwtUtil.validateToken(token, userDetails)) {
-					log.info("Token is valid, setting authentication");
-
-					UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails,
-							null, userDetails.getAuthorities());
+					UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+							userDetails, null, userDetails.getAuthorities());
 					authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
 					SecurityContextHolder.getContext().setAuthentication(authToken);
-				} else {
-					log.warn("Token validation failed for username: {}", username);
 				}
 			}
+		} catch (ExpiredJwtException e) {
+			log.warn("JWT expired for user: {}", e.getClaims().getSubject());
+			response.setContentType("application/json");
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			response.getWriter().write("{\"status\":401,\"message\":\"Token expired\"}");
+			return;
 		} catch (Exception e) {
-			log.error("JWT processing failed: {}", e.getMessage(), e);
+			log.error("JWT processing failed: {}", e.getMessage());
+			response.setContentType("application/json");
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			response.getWriter().write("{\"status\":401,\"message\":\"Invalid token\"}");
+			return;
 		}
 
 		filterChain.doFilter(request, response);

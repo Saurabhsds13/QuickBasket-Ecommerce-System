@@ -9,36 +9,43 @@ export const CartProvider = ({ children }) => {
   const [cartLoading, setCartLoading] = useState(false);
   const { isAuthenticated } = useAuth();
 
+  // Map backend CartItemViewDto to frontend cart item
+  const mapCartItem = (item) => ({
+    id: item.productId,
+    name: item.productName || "Product",
+    price: item.productPrice || 0,
+    description: item.productDescription || "",
+    primaryImageUrl: item.primaryImageUrl || null,
+    stockQuantity: item.productStockQuantity || 0,
+    quantity: item.quantity || 1,
+    cartItemId: item.id,
+  });
+
   // Fetch cart from backend when user is authenticated
   const fetchCart = useCallback(async () => {
     if (!isAuthenticated) return;
     try {
       setCartLoading(true);
       const res = await getCart();
-      // Backend returns CartItem objects with product nested
-      const items = res.data.map((item) => ({
-        id: item.product.id,
-        name: item.product.name,
-        price: item.product.price,
-        description: item.product.description,
-        primaryImageUrl: item.product.primaryImageUrl || null,
-        quantity: item.quantity,
-        cartItemId: item.id,
-      }));
-      setCartItems(items);
+      const data = res.data;
+      if (Array.isArray(data)) {
+        setCartItems(data.map(mapCartItem));
+      } else {
+        console.warn("Cart response is not an array:", data);
+        setCartItems([]);
+      }
     } catch (err) {
-      console.error("Failed to fetch cart:", err);
+      console.error("Failed to fetch cart:", err?.response?.status, err?.response?.data || err.message);
     } finally {
       setCartLoading(false);
     }
   }, [isAuthenticated]);
 
-  // Sync cart on login
+  // Sync cart on login/logout
   useEffect(() => {
     if (isAuthenticated) {
       fetchCart();
     } else {
-      // Clear cart on logout (or load from localStorage for guest)
       setCartItems(getLocalCart());
     }
   }, [isAuthenticated, fetchCart]);
@@ -59,15 +66,23 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = async (product) => {
     if (isAuthenticated) {
-      // Call backend
       try {
-        await addToCartAPI(product.id, 1);
-        await fetchCart(); // refresh from backend
+        const res = await addToCartAPI(product.id, 1);
+        // Optimistically update from response
+        const addedItem = mapCartItem(res.data);
+        setCartItems((prev) => {
+          const existing = prev.find((i) => i.id === addedItem.id);
+          if (existing) {
+            return prev.map((i) =>
+              i.id === addedItem.id ? addedItem : i
+            );
+          }
+          return [...prev, addedItem];
+        });
       } catch (err) {
-        console.error("Failed to add to cart:", err);
+        console.error("Failed to add to cart:", err?.response?.data || err.message);
       }
     } else {
-      // Guest mode — local state + localStorage
       setCartItems((prev) => {
         const existing = prev.find((item) => item.id === product.id);
         let updated;
@@ -88,7 +103,6 @@ export const CartProvider = ({ children }) => {
 
   const updateQuantity = async (id, delta) => {
     if (isAuthenticated) {
-      // For backend: if quantity becomes 0, remove; otherwise re-add
       const item = cartItems.find((i) => i.id === id);
       if (!item) return;
 
@@ -97,12 +111,14 @@ export const CartProvider = ({ children }) => {
         await removeFromCart(id);
       } else {
         try {
-          // Backend doesn't have update qty endpoint, so remove and re-add
           await removeFromCartAPI(id);
-          await addToCartAPI(id, newQty);
-          await fetchCart();
+          const res = await addToCartAPI(id, newQty);
+          const updatedItem = mapCartItem(res.data);
+          setCartItems((prev) =>
+            prev.map((i) => (i.id === updatedItem.id ? updatedItem : i))
+          );
         } catch (err) {
-          console.error("Failed to update quantity:", err);
+          console.error("Failed to update quantity:", err?.response?.data || err.message);
         }
       }
     } else {
@@ -122,9 +138,9 @@ export const CartProvider = ({ children }) => {
     if (isAuthenticated) {
       try {
         await removeFromCartAPI(id);
-        await fetchCart();
+        setCartItems((prev) => prev.filter((item) => item.id !== id));
       } catch (err) {
-        console.error("Failed to remove from cart:", err);
+        console.error("Failed to remove from cart:", err?.response?.data || err.message);
       }
     } else {
       setCartItems((prev) => {

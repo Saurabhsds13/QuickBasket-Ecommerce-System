@@ -27,7 +27,7 @@ public class CartItem {
 	private Product product;
 
 	@Column(nullable = false)
-	private Integer quantity;
+	private Integer quantity = 0;
 
 	public Long getId() {
 		return id;
@@ -54,7 +54,7 @@ public class CartItem {
 	}
 
 	public Integer getQuantity() {
-		return quantity;
+		return quantity != null ? quantity : 0;
 	}
 
 	public void setQuantity(Integer quantity) {

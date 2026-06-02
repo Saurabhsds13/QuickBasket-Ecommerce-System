@@ -45,10 +45,10 @@ public class JwtUtil {
 
 	public String generateToken(String username, String role) {
 		return Jwts.builder()
-				.setSubject(username) // 👈 important
+				.setSubject(username)
 				.claim("role", role)
 				.setIssuedAt(new Date(System.currentTimeMillis()))
-				.setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 15))
+				.setExpiration(new Date(System.currentTimeMillis() + expirationMs))
 				.signWith(key(), SignatureAlgorithm.HS256).compact();
 	}
 
