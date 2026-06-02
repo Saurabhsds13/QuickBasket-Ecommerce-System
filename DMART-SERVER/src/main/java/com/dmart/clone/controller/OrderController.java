@@ -38,7 +38,8 @@ public class OrderController {
 				order.getTotalPrice(),
 				order.getStatus(),
 				order.getCreatedAt(),
-				order.getUpdatedAt()
+				order.getUpdatedAt(),
+				List.of()
 		);
 		return ResponseEntity.ok(dto);
 	}

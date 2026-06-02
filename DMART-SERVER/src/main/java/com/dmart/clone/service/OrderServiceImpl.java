@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.dmart.clone.dto.OrderDto;
+import com.dmart.clone.dto.OrderItemDto;
 import com.dmart.clone.exception.ResourceNotFoundException;
 import com.dmart.clone.model.CartItem;
 import com.dmart.clone.model.Order;
@@ -27,6 +28,9 @@ public class OrderServiceImpl implements OrderService {
 
 	@Autowired
 	private CartRepository cartRepository;
+
+	@Autowired
+	private ProductImageService productImageService;
 
 	public Order placeOrder(User user) {
 		List<CartItem> cartItems = cartRepository.findByUser(user);
@@ -65,7 +69,7 @@ public class OrderServiceImpl implements OrderService {
 
 	@Override
 	public OrderDto getOrderById(User user, Long orderId) {
-		Order order = orderRepository.findById(orderId)
+		Order order = orderRepository.findByIdWithItems(orderId)
 				.orElseThrow(() -> new ResourceNotFoundException("Order not found with id=" + orderId));
 
 		if (!order.getUser().getId().equals(user.getId())) {
@@ -76,13 +80,37 @@ public class OrderServiceImpl implements OrderService {
 	}
 
 	private OrderDto mapToDto(Order order) {
+		List<OrderItemDto> items = List.of();
+		if (order.getOrderItems() != null) {
+			items = order.getOrderItems().stream().map(oi -> {
+				String productName = oi.getProduct() != null ? oi.getProduct().getName() : "Unknown Product";
+				String productImage = null;
+				if (oi.getProduct() != null) {
+					productImage = productImageService.getImagesByProduct(oi.getProduct()).stream()
+							.filter(img -> Boolean.TRUE.equals(img.getIsPrimary()))
+							.map(com.dmart.clone.model.ProductImage::getImageUrl)
+							.findFirst()
+							.orElse(null);
+				}
+				return new OrderItemDto(
+						oi.getId(),
+						oi.getProduct() != null ? oi.getProduct().getId() : null,
+						productName,
+						productImage,
+						oi.getQuantity(),
+						oi.getPrice()
+				);
+			}).collect(Collectors.toList());
+		}
+
 		return new OrderDto(
 				order.getId(),
 				order.getUser().getUsername(),
 				order.getTotalPrice(),
 				order.getStatus(),
 				order.getCreatedAt(),
-				order.getUpdatedAt()
+				order.getUpdatedAt(),
+				items
 		);
 	}
 }
