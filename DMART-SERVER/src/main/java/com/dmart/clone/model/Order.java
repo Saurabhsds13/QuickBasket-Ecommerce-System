@@ -40,7 +40,7 @@ public class Order {
 	@JoinColumn(name = "payment_id")
 	private Payment payment;
 
-	@OneToMany(cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<OrderItem> orderItems;
 
 	public Long getId() {
@@ -131,5 +131,4 @@ public class Order {
 				+ ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + ", payment=" + payment + ", orderItems="
 				+ orderItems + "]";
 	}
-
 }

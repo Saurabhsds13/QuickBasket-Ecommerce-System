@@ -14,7 +14,12 @@ import com.dmart.clone.model.Role;
 import com.dmart.clone.model.User;
 import com.dmart.clone.repository.UserRepository;
 import com.dmart.clone.repository.CartRepository;
+import com.dmart.clone.repository.OrderRepository;
+import com.dmart.clone.repository.PaymentRepository;
 import com.dmart.clone.repository.RefreshTokenRepository;
+import com.dmart.clone.repository.WishlistRepository;
+import com.dmart.clone.repository.AddressRepository;
+import com.dmart.clone.repository.ProductReviewRepository;
 import com.dmart.clone.security.JwtUtil;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,6 +36,21 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private RefreshTokenRepository refreshTokenRepository;
+
+	@Autowired
+	private OrderRepository orderRepository;
+
+	@Autowired
+	private PaymentRepository paymentRepository;
+
+	@Autowired
+	private WishlistRepository wishlistRepository;
+
+	@Autowired
+	private AddressRepository addressRepository;
+
+	@Autowired
+	private ProductReviewRepository productReviewRepository;
 
 	@Autowired
 	private JwtUtil jwtUtil;
@@ -114,9 +134,21 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public void deleteAccount(User user) {
-		// Clean up related data
+		// Clean up all related data before deleting user
 		cartRepository.deleteAll(cartRepository.findByUser(user));
+		wishlistRepository.deleteAll(wishlistRepository.findByUser(user));
+		addressRepository.deleteAll(addressRepository.findByUser(user));
+		productReviewRepository.deleteAll(productReviewRepository.findByUser(user));
 		refreshTokenRepository.deleteByUser(user);
+
+		// Delete payments first (they reference orders), then orders
+		var orders = orderRepository.findByUserOrderByCreatedAtDesc(user);
+		if (!orders.isEmpty()) {
+			paymentRepository.deleteAll(paymentRepository.findByOrderIn(orders));
+			orderRepository.deleteAll(orders);
+		}
+
+		// Finally delete the user
 		userRepository.delete(user);
 	}
 }
