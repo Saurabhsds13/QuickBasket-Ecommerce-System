@@ -12,5 +12,6 @@ public record OrderDto(
 		OrderStatus status,
 		Instant createdAt,
 		Instant updatedAt,
-		List<OrderItemDto> items) {
+		List<OrderItemDto> items,
+		String cancellationReason) {
 }

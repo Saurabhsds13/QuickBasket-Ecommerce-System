@@ -160,6 +160,8 @@ export const getMyOrders = () => api.get("/user/orders");
 
 export const getOrderById = (orderId) => api.get(`/user/orders/${orderId}`);
 
+export const cancelOrder = (orderId, reason) => api.put(`/user/orders/${orderId}/cancel`, { reason });
+
 // ============ WISHLIST (Authenticated) ============
 export const getWishlist = () => api.get("/user/wishlist");
 

@@ -79,6 +79,31 @@ public class OrderServiceImpl implements OrderService {
 		return mapToDto(order);
 	}
 
+	@Override
+	public OrderDto cancelOrder(User user, Long orderId, String reason) {
+		Order order = orderRepository.findByIdWithItems(orderId)
+				.orElseThrow(() -> new ResourceNotFoundException("Order not found with id=" + orderId));
+
+		if (!order.getUser().getId().equals(user.getId())) {
+			throw new RuntimeException("You can only cancel your own orders");
+		}
+
+		if (order.getStatus() == OrderStatus.SHIPPED || order.getStatus() == OrderStatus.DELIVERED) {
+			throw new RuntimeException("Cannot cancel order that has already been shipped");
+		}
+
+		if (order.getStatus() == OrderStatus.CANCELLED) {
+			throw new RuntimeException("Order is already cancelled");
+		}
+
+		order.setStatus(OrderStatus.CANCELLED);
+		order.setCancellationReason(reason);
+		order.setUpdatedAt(Instant.now());
+		orderRepository.save(order);
+
+		return mapToDto(order);
+	}
+
 	private OrderDto mapToDto(Order order) {
 		List<OrderItemDto> items = List.of();
 		if (order.getOrderItems() != null) {
@@ -110,7 +135,8 @@ public class OrderServiceImpl implements OrderService {
 				order.getStatus(),
 				order.getCreatedAt(),
 				order.getUpdatedAt(),
-				items
+				items,
+				order.getCancellationReason()
 		);
 	}
 }

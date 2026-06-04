@@ -57,6 +57,6 @@ public class AdminOrderService {
 
 	private OrderDto toDto(Order order) {
 		return new OrderDto(order.getId(), order.getUser().getUsername(), order.getTotalPrice(), order.getStatus(),
-				order.getCreatedAt(), order.getUpdatedAt(), java.util.List.of());
+				order.getCreatedAt(), order.getUpdatedAt(), java.util.List.of(), order.getCancellationReason());
 	}
 }

@@ -1,12 +1,15 @@
 package com.dmart.clone.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -32,15 +35,8 @@ public class OrderController {
 	public ResponseEntity<OrderDto> placeOrder(HttpServletRequest request) {
 		User user = userService.getCurrentUser(request);
 		Order order = orderService.placeOrder(user);
-		OrderDto dto = new OrderDto(
-				order.getId(),
-				user.getUsername(),
-				order.getTotalPrice(),
-				order.getStatus(),
-				order.getCreatedAt(),
-				order.getUpdatedAt(),
-				List.of()
-		);
+		OrderDto dto = new OrderDto(order.getId(), user.getUsername(), order.getTotalPrice(), order.getStatus(),
+				order.getCreatedAt(), order.getUpdatedAt(), List.of(), null);
 		return ResponseEntity.ok(dto);
 	}
 
@@ -55,6 +51,15 @@ public class OrderController {
 	public ResponseEntity<OrderDto> getOrderById(@PathVariable Long orderId, HttpServletRequest request) {
 		User user = userService.getCurrentUser(request);
 		OrderDto order = orderService.getOrderById(user, orderId);
+		return ResponseEntity.ok(order);
+	}
+
+	@PutMapping("/{orderId}/cancel")
+	public ResponseEntity<OrderDto> cancelOrder(@PathVariable Long orderId,
+			@RequestBody(required = false) Map<String, String> body, HttpServletRequest request) {
+		User user = userService.getCurrentUser(request);
+		String reason = body != null ? body.get("reason") : null;
+		OrderDto order = orderService.cancelOrder(user, orderId, reason);
 		return ResponseEntity.ok(order);
 	}
 }

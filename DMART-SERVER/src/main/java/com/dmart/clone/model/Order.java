@@ -35,6 +35,7 @@ public class Order {
 	private Double totalPrice;
 	private Instant createdAt;
 	private Instant updatedAt;
+	private String cancellationReason;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "payment_id")
@@ -65,6 +66,14 @@ public class Order {
 
 	public void setStatus(OrderStatus status) {
 		this.status = status;
+	}
+
+	public String getCancellationReason() {
+		return cancellationReason;
+	}
+
+	public void setCancellationReason(String cancellationReason) {
+		this.cancellationReason = cancellationReason;
 	}
 
 	public Double getTotalPrice() {

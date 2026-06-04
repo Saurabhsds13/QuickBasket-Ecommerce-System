@@ -1,19 +1,129 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getMyOrders } from "../services/api";
-import { Package, ChevronDown, ChevronUp, Clock, Truck, CheckCircle, XCircle, ShoppingBag } from "lucide-react";
+import { getMyOrders, cancelOrder } from "../services/api";
+import { Package, ChevronDown, ChevronUp, Clock, Truck, CheckCircle, XCircle, ShoppingBag, Plus, X, AlertTriangle } from "lucide-react";
+import { useToast } from "../components/Toast";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
 const statusConfig = {
-  PENDING: { label: "Pending", color: "bg-yellow-100 text-yellow-700 border-yellow-200", icon: Clock, dotColor: "bg-yellow-500" },
-  CONFIRMED: { label: "Confirmed", color: "bg-blue-100 text-blue-700 border-blue-200", icon: CheckCircle, dotColor: "bg-blue-500" },
-  SHIPPED: { label: "Shipped", color: "bg-purple-100 text-purple-700 border-purple-200", icon: Truck, dotColor: "bg-purple-500" },
-  DELIVERED: { label: "Delivered", color: "bg-green-100 text-green-700 border-green-200", icon: CheckCircle, dotColor: "bg-green-500" },
-  CANCELLED: { label: "Cancelled", color: "bg-red-100 text-red-700 border-red-200", icon: XCircle, dotColor: "bg-red-500" },
+  PENDING: { label: "Pending", color: "bg-yellow-100 text-yellow-700 border-yellow-200", icon: Clock },
+  CONFIRMED: { label: "Confirmed", color: "bg-blue-100 text-blue-700 border-blue-200", icon: CheckCircle },
+  SHIPPED: { label: "Shipped", color: "bg-purple-100 text-purple-700 border-purple-200", icon: Truck },
+  DELIVERED: { label: "Delivered", color: "bg-green-100 text-green-700 border-green-200", icon: CheckCircle },
+  CANCELLED: { label: "Cancelled", color: "bg-red-100 text-red-700 border-red-200", icon: XCircle },
 };
 
-function OrderCard({ order }) {
+const cancellationReasons = [
+  "I want to add more items",
+  "Found a better price elsewhere",
+  "Ordered by mistake",
+  "Delivery is taking too long",
+  "Changed my mind",
+  "Other",
+];
+
+// Cancel Order Modal
+function CancelOrderModal({ isOpen, onClose, onConfirm, orderId }) {
+  const [selectedReason, setSelectedReason] = useState("");
+  const [customReason, setCustomReason] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleConfirm = async () => {
+    const reason = selectedReason === "Other" ? customReason : selectedReason;
+    if (!reason.trim()) return;
+    setSubmitting(true);
+    await onConfirm(orderId, reason);
+    setSubmitting(false);
+    onClose();
+    setSelectedReason("");
+    setCustomReason("");
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+        {/* Header */}
+        <div className="p-6 pb-4 border-b border-gray-100">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Cancel Order</h3>
+                <p className="text-sm text-gray-500">Order #{orderId}</p>
+              </div>
+            </div>
+            <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100 transition">
+              <X className="w-5 h-5 text-gray-400" />
+            </button>
+          </div>
+        </div>
+
+        {/* Body */}
+        <div className="p-6 space-y-4">
+          <p className="text-sm text-gray-600 font-medium">Why are you cancelling this order?</p>
+
+          <div className="space-y-2">
+            {cancellationReasons.map((reason) => (
+              <label
+                key={reason}
+                className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                  selectedReason === reason
+                    ? "border-red-300 bg-red-50"
+                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="cancelReason"
+                  value={reason}
+                  checked={selectedReason === reason}
+                  onChange={(e) => setSelectedReason(e.target.value)}
+                  className="w-4 h-4 text-red-600 focus:ring-red-500"
+                />
+                <span className="text-sm text-gray-700">{reason}</span>
+              </label>
+            ))}
+          </div>
+
+          {selectedReason === "Other" && (
+            <textarea
+              value={customReason}
+              onChange={(e) => setCustomReason(e.target.value)}
+              placeholder="Please specify your reason..."
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-200 focus:border-red-400 resize-none text-sm"
+              rows={3}
+            />
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="p-6 pt-4 border-t border-gray-100 flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 py-3 px-4 rounded-xl border border-gray-200 text-gray-700 font-medium text-sm hover:bg-gray-50 transition"
+          >
+            Keep Order
+          </button>
+          <button
+            onClick={handleConfirm}
+            disabled={!selectedReason.trim() || (selectedReason === "Other" && !customReason.trim()) || submitting}
+            className="flex-1 py-3 px-4 rounded-xl bg-red-600 text-white font-medium text-sm hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {submitting ? "Cancelling..." : "Cancel Order"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function OrderCard({ order, onCancelClick, navigate }) {
   const [expanded, setExpanded] = useState(false);
   const status = statusConfig[order.status] || statusConfig.PENDING;
   const StatusIcon = status.icon;
@@ -29,13 +139,14 @@ function OrderCard({ order }) {
     : "";
 
   const itemCount = order.items?.length || 0;
+  const canCancel = order.status === "PENDING" || order.status === "CONFIRMED";
+  const canAddItems = order.status === "PENDING";
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
       {/* Order Header */}
       <div className="p-5 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          {/* Left - Order info */}
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center flex-shrink-0">
               <Package className="w-6 h-6 text-gray-600" />
@@ -55,7 +166,6 @@ function OrderCard({ order }) {
             </div>
           </div>
 
-          {/* Right - Price and expand */}
           <div className="flex items-center gap-4 sm:gap-6">
             <div className="text-right">
               <p className="text-xl font-bold text-gray-900">₹{order.total?.toFixed(2)}</p>
@@ -64,12 +174,24 @@ function OrderCard({ order }) {
             <button
               onClick={() => setExpanded(!expanded)}
               className="p-2 rounded-xl hover:bg-gray-100 transition-colors text-gray-500"
-              aria-label={expanded ? "Collapse order" : "Expand order"}
             >
               {expanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
             </button>
           </div>
         </div>
+
+        {/* Quick action buttons (visible without expanding) */}
+        {canAddItems && (
+          <div className="mt-4 pt-3 border-t border-gray-100">
+            <button
+              onClick={() => navigate("/AllProducts")}
+              className="inline-flex items-center gap-2 text-sm font-medium text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100 px-4 py-2 rounded-lg transition"
+            >
+              <Plus className="w-4 h-4" />
+              Add More Items
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Order Items - Expandable */}
@@ -101,10 +223,40 @@ function OrderCard({ order }) {
             <span className="text-sm text-gray-500">Order Total</span>
             <span className="font-bold text-gray-900">₹{order.total?.toFixed(2)}</span>
           </div>
+
+          {/* Cancellation reason if cancelled */}
+          {order.status === "CANCELLED" && order.cancellationReason && (
+            <div className="mt-3 p-3 bg-red-50 rounded-lg border border-red-100">
+              <p className="text-xs font-medium text-red-600">Cancellation Reason</p>
+              <p className="text-sm text-red-700 mt-0.5">{order.cancellationReason}</p>
+            </div>
+          )}
+
+          {/* Cancel button */}
+          {canCancel && (
+            <div className="mt-4 pt-3 border-t border-gray-200 flex flex-wrap gap-3">
+              {canAddItems && (
+                <button
+                  onClick={() => navigate("/AllProducts")}
+                  className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2.5 rounded-lg hover:bg-green-100 transition font-medium text-sm border border-green-200"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add More Items
+                </button>
+              )}
+              <button
+                onClick={() => onCancelClick(order.id)}
+                className="inline-flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2.5 rounded-lg hover:bg-red-100 transition font-medium text-sm border border-red-200"
+              >
+                <XCircle className="w-4 h-4" />
+                Cancel Order
+              </button>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Progress bar for non-cancelled/delivered orders */}
+      {/* Progress bar */}
       {order.status !== "CANCELLED" && order.status !== "DELIVERED" && (
         <div className="px-5 sm:px-6 pb-4">
           <div className="flex items-center gap-1 mt-2">
@@ -134,7 +286,9 @@ function OrderCard({ order }) {
 export default function OrdersPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [cancelModal, setCancelModal] = useState({ open: false, orderId: null });
   const navigate = useNavigate();
+  const toast = useToast();
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -149,6 +303,16 @@ export default function OrdersPage() {
     };
     fetchOrders();
   }, []);
+
+  const handleCancelConfirm = async (orderId, reason) => {
+    try {
+      const res = await cancelOrder(orderId, reason);
+      setOrders((prev) => prev.map((o) => (o.id === orderId ? res.data : o)));
+      toast.success("Order cancelled successfully");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to cancel order");
+    }
+  };
 
   if (loading) {
     return (
@@ -198,11 +362,24 @@ export default function OrdersPage() {
         ) : (
           <div className="space-y-4">
             {orders.map((order) => (
-              <OrderCard key={order.id} order={order} />
+              <OrderCard
+                key={order.id}
+                order={order}
+                onCancelClick={(id) => setCancelModal({ open: true, orderId: id })}
+                navigate={navigate}
+              />
             ))}
           </div>
         )}
       </div>
+
+      {/* Cancel Order Modal */}
+      <CancelOrderModal
+        isOpen={cancelModal.open}
+        orderId={cancelModal.orderId}
+        onClose={() => setCancelModal({ open: false, orderId: null })}
+        onConfirm={handleCancelConfirm}
+      />
     </div>
   );
 }
