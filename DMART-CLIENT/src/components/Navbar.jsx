@@ -50,12 +50,15 @@ const Navbar = () => {
           {/* Logo */}
           <div className="flex items-center space-x-2 md:space-x-14">
             <Link to="/" className="flex items-center space-x-1">
-              <svg className="w-7 h-7 text-green-600" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
-              </svg>
-              <span className="text-xl font-extrabold text-gray-900 tracking-wide">
-                Quick<span className="text-green-600">Basket</span>
-              </span>
+
+              <div className="flex items-center gap-2">
+                <div className="w-9 h-9 bg-green-600 rounded-xl flex items-center justify-center">
+                  <span className="text-white font-bold text-lg">Q</span>
+                </div>
+                <span className="text-xl font-extrabold gray-900 tracking-wide">Quick
+                  <span className="text-green-600">Basket</span>
+                </span>
+              </div>
             </Link>
           </div>
 

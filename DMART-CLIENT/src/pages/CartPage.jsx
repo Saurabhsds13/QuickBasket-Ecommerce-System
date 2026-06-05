@@ -18,8 +18,30 @@ export default function CartPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
       <div className="container mx-auto max-w-6xl">
-        <h1 className="text-3xl font-bold mb-6">🛒 Shopping Cart</h1>
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900">
+            Shopping Bag
+          </h1>
 
+          <p className="text-gray-500 mt-2">
+            {cartItems.length} items ready for checkout
+          </p>
+        </div>
+        <div className="bg-white rounded-2xl p-5 shadow-sm mb-6">
+          <div className="flex justify-between mb-2">
+            <span className="font-medium">
+              You're ₹350 away from FREE delivery
+            </span>
+            <span>₹650 / ₹1000</span>
+          </div>
+
+          <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-green-500"
+              style={{ width: "65%" }}
+            />
+          </div>
+        </div>
         {cartItems.length === 0 ? (
           // Empty Cart Layout
           <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
@@ -64,10 +86,7 @@ export default function CartPage() {
             {/* Cart Items */}
             <div className="md:col-span-2 bg-white rounded-xl shadow p-6">
               {cartItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between border-b py-4"
-                >
+                <div className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-lg transition-all duration-300 mb-4">
                   <div className="flex items-center gap-4">
                     <img
                       src={
@@ -76,8 +95,9 @@ export default function CartPage() {
                           : "/fallback-product.png"
                       }
                       alt={item.name}
-                      className="w-20 h-20 object-cover rounded-lg"
+                      className="w-28 h-28 rounded-2xl object-cover rounded-lg"
                     />
+
                     <div>
                       <h3 className="font-medium">{item.name}</h3>
                       <p className="text-gray-600">₹{item.price}</p>
@@ -110,7 +130,15 @@ export default function CartPage() {
                     >
                       Remove
                     </button>
+
                   </div>
+                  <p className="text-xs text-green-600">
+                    In Stock
+                  </p>
+
+                  <p className="text-xs text-gray-500">
+                    Delivery by Tomorrow
+                  </p>
                 </div>
               ))}
 
@@ -123,7 +151,7 @@ export default function CartPage() {
             </div>
 
             {/* Order Summary */}
-            <div className="bg-white rounded-xl shadow p-6">
+            <div className="bg-white rounded-3xl shadow-lg p-8 sticky top-6 h-fit">
               <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
 
               <div className="flex justify-between mb-2 text-gray-700">
@@ -142,9 +170,10 @@ export default function CartPage() {
                 </span>
               </div>
 
-              <div className="flex justify-between mb-2 text-gray-700">
-                <span>Savings</span>
-                <span className="text-green-600">−₹{savings}</span>
+              <div className="bg-green-50 rounded-xl p-4 mb-4">
+                <p className="text-green-700 font-semibold">
+                  🎉 You saved ₹300 on this order
+                </p>
               </div>
 
               <div className="flex justify-between font-bold text-lg border-t pt-3">
@@ -157,6 +186,11 @@ export default function CartPage() {
               >
                 Proceed to Checkout →
               </button>
+              <div className="mt-5 space-y-2 text-sm text-gray-500">
+                <p>✓ Secure Payments</p>
+                <p>✓ Easy Returns</p>
+                <p>✓ 100% Fresh Products</p>
+              </div>
             </div>
           </div>
         )}
