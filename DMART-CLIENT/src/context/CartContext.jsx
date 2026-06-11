@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { getCart, addToCartAPI, removeFromCartAPI } from "../services/api";
+import { getCart, addToCartAPI, updateCartQuantityAPI, removeFromCartAPI, clearCartAPI } from "../services/api";
 import { useAuth } from "./AuthContext";
 
 const CartContext = createContext();
@@ -110,15 +110,16 @@ export const CartProvider = ({ children }) => {
       if (newQty <= 0) {
         await removeFromCart(id);
       } else {
+        // Optimistically update UI
+        setCartItems((prev) =>
+          prev.map((i) => (i.id === id ? { ...i, quantity: newQty } : i))
+        );
         try {
-          await removeFromCartAPI(id);
-          const res = await addToCartAPI(id, newQty);
-          const updatedItem = mapCartItem(res.data);
-          setCartItems((prev) =>
-            prev.map((i) => (i.id === updatedItem.id ? updatedItem : i))
-          );
+          await updateCartQuantityAPI(id, newQty);
         } catch (err) {
           console.error("Failed to update quantity:", err?.response?.data || err.message);
+          // Revert on failure
+          fetchCart();
         }
       }
     } else {
@@ -151,11 +152,17 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  const clearCart = () => {
-    setCartItems([]);
-    if (!isAuthenticated) {
+  const clearCart = async () => {
+    if (isAuthenticated) {
+      try {
+        await clearCartAPI();
+      } catch (err) {
+        console.error("Failed to clear cart:", err?.response?.data || err.message);
+      }
+    } else {
       localStorage.removeItem("guest_cart");
     }
+    setCartItems([]);
   };
 
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);

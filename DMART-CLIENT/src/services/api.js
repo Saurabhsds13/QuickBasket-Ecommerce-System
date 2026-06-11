@@ -150,8 +150,13 @@ export const getCart = () => api.get("/public/cart");
 export const addToCartAPI = (productId, quantity = 1) =>
   api.post("/public/cart/add", { productId, quantity });
 
+export const updateCartQuantityAPI = (productId, quantity) =>
+  api.put("/public/cart/update", { productId, quantity });
+
 export const removeFromCartAPI = (productId) =>
   api.delete(`/public/cart/remove/${productId}`);
+
+export const clearCartAPI = () => api.delete("/public/cart/clear");
 
 // ============ ORDERS (Authenticated) ============
 export const placeOrder = () => api.post("/user/orders/place");

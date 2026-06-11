@@ -38,14 +38,23 @@ public class CartServiceImpl implements CartService {
 		Product product = productRepository.findById(productId)
 				.orElseThrow(() -> new RuntimeException("Product not found"));
 
-		CartItem cartItem = cartRepository.findByUserAndProduct(user, product).orElse(null);
+		// Clean up any duplicates first
+		List<CartItem> existingItems = cartRepository.findAllByUserAndProduct(user, product);
+		CartItem cartItem;
 
-		if (cartItem == null) {
+		if (existingItems.isEmpty()) {
 			cartItem = new CartItem();
 			cartItem.setUser(user);
 			cartItem.setProduct(product);
 			cartItem.setQuantity(quantity);
 		} else {
+			// Keep the first one, delete any duplicates
+			cartItem = existingItems.get(0);
+			if (existingItems.size() > 1) {
+				for (int i = 1; i < existingItems.size(); i++) {
+					cartRepository.delete(existingItems.get(i));
+				}
+			}
 			int currentQty = cartItem.getQuantity() != null ? cartItem.getQuantity() : 0;
 			cartItem.setQuantity(currentQty + quantity);
 		}
@@ -55,10 +64,45 @@ public class CartServiceImpl implements CartService {
 	}
 
 	@Override
+	public CartItemViewDto updateCartItemQuantity(User user, Long productId, int quantity) {
+		Product product = productRepository.findById(productId)
+				.orElseThrow(() -> new RuntimeException("Product not found"));
+
+		// Clean up any duplicates
+		List<CartItem> existingItems = cartRepository.findAllByUserAndProduct(user, product);
+
+		if (existingItems.isEmpty()) {
+			throw new RuntimeException("Cart item not found");
+		}
+
+		// Keep the first, delete duplicates
+		CartItem cartItem = existingItems.get(0);
+		if (existingItems.size() > 1) {
+			for (int i = 1; i < existingItems.size(); i++) {
+				cartRepository.delete(existingItems.get(i));
+			}
+		}
+
+		if (quantity <= 0) {
+			cartRepository.delete(cartItem);
+			return null;
+		}
+
+		cartItem.setQuantity(quantity);
+		CartItem saved = cartRepository.save(cartItem);
+		return toDto(saved);
+	}
+
+	@Override
 	public void removeFromCart(User user, Long productId) {
 		Product product = productRepository.findById(productId)
 				.orElseThrow(() -> new RuntimeException("Product not found"));
-		cartRepository.findByUserAndProduct(user, product).ifPresent(cartRepository::delete);
+		cartRepository.deleteAllByUserAndProduct(user, product);
+	}
+
+	@Override
+	public void clearCart(User user) {
+		cartRepository.deleteAllByUser(user);
 	}
 
 	private CartItemViewDto toDto(CartItem item) {
