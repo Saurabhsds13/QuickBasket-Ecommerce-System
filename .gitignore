@@ -38,3 +38,5 @@ desktop.ini
 
 # Eclipse metadata
 .metadata/
+DMART-CLIENT/.vite/deps/_metadata.json
+DMART-CLIENT/.vite/deps/package.json
