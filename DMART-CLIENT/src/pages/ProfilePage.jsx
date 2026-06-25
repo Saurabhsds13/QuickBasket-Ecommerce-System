@@ -194,22 +194,36 @@ export default function ProfilePage() {
           <motion.div
             variants={fadeUp}
             whileHover={{ y: -4 }}
-            className="bg-white rounded-3xl border border-gray-100 p-5 shadow-sm"
+            onClick={() => navigate("/addresses")}
+            className="bg-white rounded-3xl border border-gray-100 p-5 shadow-sm cursor-pointer hover:border-green-200 transition"
           >
-            <p className="text-xs uppercase text-gray-500">Profile</p>
+            <p className="text-xs uppercase text-gray-500">Addresses</p>
             <p className="text-lg font-bold text-green-600 mt-1">
-              Active
+              Manage
             </p>
           </motion.div>
 
           <motion.div
             variants={fadeUp}
             whileHover={{ y: -4 }}
-            className="bg-white rounded-3xl border border-gray-100 p-5 shadow-sm"
+            onClick={() => navigate("/orders")}
+            className="bg-white rounded-3xl border border-gray-100 p-5 shadow-sm cursor-pointer hover:border-green-200 transition"
           >
-            <p className="text-xs uppercase text-gray-500">Email</p>
+            <p className="text-xs uppercase text-gray-500">Orders</p>
             <p className="text-lg font-bold text-gray-900 mt-1">
-              Verified
+              View All
+            </p>
+          </motion.div>
+
+          <motion.div
+            variants={fadeUp}
+            whileHover={{ y: -4 }}
+            onClick={() => navigate("/wishlist")}
+            className="bg-white rounded-3xl border border-gray-100 p-5 shadow-sm cursor-pointer hover:border-green-200 transition"
+          >
+            <p className="text-xs uppercase text-gray-500">Wishlist</p>
+            <p className="text-lg font-bold text-gray-900 mt-1">
+              View All
             </p>
           </motion.div>
 
@@ -219,19 +233,8 @@ export default function ProfilePage() {
             className="bg-white rounded-3xl border border-gray-100 p-5 shadow-sm"
           >
             <p className="text-xs uppercase text-gray-500">Security</p>
-            <p className="text-lg font-bold text-gray-900 mt-1">
-              Protected
-            </p>
-          </motion.div>
-
-          <motion.div
-            variants={fadeUp}
-            whileHover={{ y: -4 }}
-            className="bg-white rounded-3xl border border-gray-100 p-5 shadow-sm"
-          >
-            <p className="text-xs uppercase text-gray-500">Account</p>
             <p className="text-lg font-bold text-green-600 mt-1">
-              Healthy
+              Protected
             </p>
           </motion.div>
         </motion.div>

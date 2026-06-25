@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 public record AddressDto(
         Long id,
 
-        @NotBlank(message = "Address type is required (SHIPPING or BILLING)")
+        @NotBlank(message = "Address type is required (HOME, WORK, or OTHER)")
         String type,
 
         @NotBlank(message = "Address line 1 is required")
@@ -23,6 +23,12 @@ public record AddressDto(
         String postalCode,
 
         @NotBlank(message = "Country is required")
-        String country
+        String country,
+
+        Boolean isDefault,
+
+        String phone,
+
+        String label
 ) {
 }

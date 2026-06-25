@@ -105,6 +105,7 @@ const Navbar = () => {
                 {showUserMenu && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
                     <Link to="/profile" onClick={() => setShowUserMenu(false)} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-green-600">My Profile</Link>
+                    <Link to="/addresses" onClick={() => setShowUserMenu(false)} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-green-600">My Addresses</Link>
                     <Link to="/orders" onClick={() => setShowUserMenu(false)} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-green-600">My Orders</Link>
                     <Link to="/wishlist" onClick={() => setShowUserMenu(false)} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-green-600">Wishlist</Link>
                     <hr className="my-1" />
@@ -191,6 +192,7 @@ const Navbar = () => {
             {isAuthenticated ? (
               <>
                 <Link to="/profile" className="block px-3 py-2 text-gray-700 hover:text-green-600">My Profile</Link>
+                <Link to="/addresses" className="block px-3 py-2 text-gray-700 hover:text-green-600">My Addresses</Link>
                 <Link to="/orders" className="block px-3 py-2 text-gray-700 hover:text-green-600">My Orders</Link>
                 <Link to="/wishlist" className="block px-3 py-2 text-gray-700 hover:text-green-600">Wishlist</Link>
                 <button onClick={handleLogout} className="block w-full text-left px-3 py-2 text-red-600">Sign Out</button>

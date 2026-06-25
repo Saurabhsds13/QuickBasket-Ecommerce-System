@@ -12,14 +12,18 @@ import com.dmart.clone.model.Address;
 import com.dmart.clone.model.User;
 import com.dmart.clone.repository.AddressRepository;
 
+import jakarta.persistence.EntityManager;
+
 @Service
 @Transactional
 public class AddressServiceImpl implements AddressService {
 
     private final AddressRepository addressRepository;
+    private final EntityManager entityManager;
 
-    public AddressServiceImpl(AddressRepository addressRepository) {
+    public AddressServiceImpl(AddressRepository addressRepository, EntityManager entityManager) {
         this.addressRepository = addressRepository;
+        this.entityManager = entityManager;
     }
 
     @Override
@@ -41,6 +45,18 @@ public class AddressServiceImpl implements AddressService {
         address.setState(dto.state());
         address.setPostalCode(dto.postalCode());
         address.setCountry(dto.country());
+        address.setPhone(dto.phone());
+        address.setLabel(dto.label());
+
+        // If this is the first address or explicitly marked default, make it default
+        List<Address> existingAddresses = addressRepository.findByUser(user);
+        if (existingAddresses.isEmpty() || Boolean.TRUE.equals(dto.isDefault())) {
+            addressRepository.clearDefaultsByUser(user);
+            entityManager.flush();
+            address.setDefault(true);
+        } else {
+            address.setDefault(false);
+        }
 
         Address saved = addressRepository.save(address);
         return mapToDto(saved);
@@ -62,6 +78,15 @@ public class AddressServiceImpl implements AddressService {
         address.setState(dto.state());
         address.setPostalCode(dto.postalCode());
         address.setCountry(dto.country());
+        address.setPhone(dto.phone());
+        address.setLabel(dto.label());
+
+        // If explicitly setting as default
+        if (Boolean.TRUE.equals(dto.isDefault()) && !address.isDefault()) {
+            addressRepository.clearDefaultsByUser(user);
+            entityManager.flush();
+            address.setDefault(true);
+        }
 
         Address saved = addressRepository.save(address);
         return mapToDto(saved);
@@ -76,7 +101,40 @@ public class AddressServiceImpl implements AddressService {
             throw new RuntimeException("You can only delete your own addresses");
         }
 
+        boolean wasDefault = address.isDefault();
         addressRepository.delete(address);
+        entityManager.flush();
+
+        // If we deleted the default, make the first remaining address the default
+        if (wasDefault) {
+            List<Address> remaining = addressRepository.findByUser(user);
+            if (!remaining.isEmpty()) {
+                remaining.get(0).setDefault(true);
+                addressRepository.save(remaining.get(0));
+            }
+        }
+    }
+
+    @Override
+    public AddressDto setDefaultAddress(User user, Long addressId) {
+        Address address = addressRepository.findById(addressId)
+                .orElseThrow(() -> new ResourceNotFoundException("Address not found with id=" + addressId));
+
+        if (!address.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("You can only modify your own addresses");
+        }
+
+        // Clear all existing defaults for this user using bulk update
+        addressRepository.clearDefaultsByUser(user);
+        entityManager.flush();
+
+        // Refresh the entity to pick up the cleared state from DB
+        entityManager.refresh(address);
+
+        // Set the new default
+        address.setDefault(true);
+        Address saved = addressRepository.save(address);
+        return mapToDto(saved);
     }
 
     private AddressDto mapToDto(Address address) {
@@ -88,7 +146,10 @@ public class AddressServiceImpl implements AddressService {
                 address.getCity(),
                 address.getState(),
                 address.getPostalCode(),
-                address.getCountry()
+                address.getCountry(),
+                address.isDefault(),
+                address.getPhone(),
+                address.getLabel()
         );
     }
 }

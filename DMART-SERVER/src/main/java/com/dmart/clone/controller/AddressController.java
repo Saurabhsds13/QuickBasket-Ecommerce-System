@@ -51,6 +51,12 @@ public class AddressController {
         return ResponseEntity.ok(addressService.updateAddress(user, id, dto));
     }
 
+    @PutMapping("/{id}/default")
+    public ResponseEntity<AddressDto> setDefaultAddress(@PathVariable Long id, HttpServletRequest request) {
+        User user = userService.getCurrentUser(request);
+        return ResponseEntity.ok(addressService.setDefaultAddress(user, id));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAddress(@PathVariable Long id, HttpServletRequest request) {
         User user = userService.getCurrentUser(request);

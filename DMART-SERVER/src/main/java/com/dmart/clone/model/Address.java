@@ -27,6 +27,10 @@ public class Address {
 	private String state;
 	private String postalCode;
 	private String country;
+	@Column(nullable = false)
+	private boolean isDefault = false;
+	private String phone;
+	private String label;
 
 	public Long getId() {
 		return id;
@@ -100,8 +104,32 @@ public class Address {
 		this.country = country;
 	}
 
+	public boolean isDefault() {
+		return isDefault;
+	}
+
+	public void setDefault(boolean isDefault) {
+		this.isDefault = isDefault;
+	}
+
+	public String getPhone() {
+		return phone;
+	}
+
+	public void setPhone(String phone) {
+		this.phone = phone;
+	}
+
+	public String getLabel() {
+		return label;
+	}
+
+	public void setLabel(String label) {
+		this.label = label;
+	}
+
 	public Address(Long id, User user, String type, String line1, String line2, String city, String state,
-			String postalCode, String country) {
+			String postalCode, String country, boolean isDefault, String phone, String label) {
 		super();
 		this.id = id;
 		this.user = user;
@@ -112,6 +140,9 @@ public class Address {
 		this.state = state;
 		this.postalCode = postalCode;
 		this.country = country;
+		this.isDefault = isDefault;
+		this.phone = phone;
+		this.label = label;
 	}
 
 	public Address() {
@@ -122,7 +153,8 @@ public class Address {
 	@Override
 	public String toString() {
 		return "Address [id=" + id + ", user=" + user + ", type=" + type + ", line1=" + line1 + ", line2=" + line2
-				+ ", city=" + city + ", state=" + state + ", postalCode=" + postalCode + ", country=" + country + "]";
+				+ ", city=" + city + ", state=" + state + ", postalCode=" + postalCode + ", country=" + country
+				+ ", isDefault=" + isDefault + ", phone=" + phone + ", label=" + label + "]";
 	}
 
 }

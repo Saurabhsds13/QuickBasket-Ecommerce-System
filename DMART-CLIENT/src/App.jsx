@@ -11,6 +11,7 @@ import CartPage from "./pages/CartPage.jsx";
 import OrderConfirmationPage from "./pages/OrderConfirmationPage.jsx";
 import OrdersPage from "./pages/OrdersPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
+import AddressesPage from "./pages/AddressesPage.jsx";
 import WishlistPage from "./pages/WishlistPage.jsx";
 import ProductDetailPage from "./pages/ProductDetailPage.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
@@ -43,6 +44,9 @@ export default function App() {
             } />
             <Route path="/profile" element={
               <ProtectedRoute><ProfilePage /></ProtectedRoute>
+            } />
+            <Route path="/addresses" element={
+              <ProtectedRoute><AddressesPage /></ProtectedRoute>
             } />
             <Route path="/wishlist" element={
               <ProtectedRoute><WishlistPage /></ProtectedRoute>

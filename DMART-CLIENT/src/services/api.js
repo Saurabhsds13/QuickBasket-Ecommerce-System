@@ -186,6 +186,8 @@ export const addAddress = (data) => api.post("/user/addresses", data);
 
 export const updateAddress = (id, data) => api.put(`/user/addresses/${id}`, data);
 
+export const setDefaultAddress = (id) => api.put(`/user/addresses/${id}/default`);
+
 export const deleteAddress = (id) => api.delete(`/user/addresses/${id}`);
 
 // ============ COUPONS (Authenticated) ============

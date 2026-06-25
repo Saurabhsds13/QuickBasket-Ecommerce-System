@@ -14,4 +14,6 @@ public interface AddressService {
     AddressDto updateAddress(User user, Long addressId, AddressDto dto);
 
     void deleteAddress(User user, Long addressId);
+
+    AddressDto setDefaultAddress(User user, Long addressId);
 }
