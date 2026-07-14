@@ -13,9 +13,12 @@ const AllProducts = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState(null);
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("search") || "";
+  const categoryFromUrl = searchParams.get("category") || "";
+  const [selectedCategory, setSelectedCategory] = useState(
+    categoryFromUrl ? Number(categoryFromUrl) : null
+  );
 
   // Price filter state
   const [minPrice, setMinPrice] = useState("");
@@ -25,6 +28,14 @@ const AllProducts = () => {
 
   // Mobile filter drawer
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+
+  // Sync selected category when URL param changes (e.g. back/forward navigation)
+  useEffect(() => {
+    const urlCategory = categoryFromUrl ? Number(categoryFromUrl) : null;
+    if (urlCategory !== selectedCategory) {
+      setSelectedCategory(urlCategory);
+    }
+  }, [categoryFromUrl]);
 
   useEffect(() => {
     const fetchCategories = async () => {

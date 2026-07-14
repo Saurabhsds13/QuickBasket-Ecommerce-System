@@ -6,6 +6,8 @@ import NewsletterSignup from "../components/NewsletterSignup.jsx";
 import ProductCard from "../components/ProductCard.jsx";
 import { getProducts, getCategories } from "../services/api";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
+
 export default function Home() {
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -117,6 +119,9 @@ export default function Home() {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5">
             {categories.map((category, index) => {
               const categoryStyle = getCategoryStyle(category.name, index);
+              const hasImage = category.imageUrl;
+              const imageUrl = hasImage ? `${API_BASE_URL}${category.imageUrl}` : null;
+
               return (
                 <button
                   key={category.id}
@@ -126,9 +131,25 @@ export default function Home() {
                   {/* Background gradient on hover */}
                   <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${categoryStyle.bg}`} />
 
-                  {/* Icon */}
-                  <div className={`relative w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 ${categoryStyle.iconBg} group-hover:scale-110`}>
-                    <span className="text-3xl">{categoryStyle.emoji}</span>
+                  {/* Icon or Image */}
+                  <div className={`relative w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 overflow-hidden ${!hasImage ? categoryStyle.iconBg : ''}`}>
+                    {hasImage ? (
+                      <img
+                        src={imageUrl}
+                        alt={category.name}
+                        className="w-full h-full object-cover rounded-2xl"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
+                      />
+                    ) : null}
+                    <span
+                      className={`text-3xl ${hasImage ? 'hidden' : 'block'}`}
+                      style={hasImage ? { display: 'none' } : {}}
+                    >
+                      {categoryStyle.emoji}
+                    </span>
                   </div>
 
                   {/* Name */}
