@@ -12,6 +12,66 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // Map category names to relevant emojis and colors
+  const getCategoryStyle = (name, index) => {
+    const n = name.toLowerCase();
+    const styles = [
+      { emoji: "🥬", bg: "bg-green-50", iconBg: "bg-green-100" },
+      { emoji: "🍎", bg: "bg-red-50", iconBg: "bg-red-100" },
+      { emoji: "🥛", bg: "bg-blue-50", iconBg: "bg-blue-100" },
+      { emoji: "🍞", bg: "bg-amber-50", iconBg: "bg-amber-100" },
+      { emoji: "🧴", bg: "bg-purple-50", iconBg: "bg-purple-100" },
+      { emoji: "🍖", bg: "bg-orange-50", iconBg: "bg-orange-100" },
+      { emoji: "🍪", bg: "bg-yellow-50", iconBg: "bg-yellow-100" },
+      { emoji: "🧊", bg: "bg-cyan-50", iconBg: "bg-cyan-100" },
+      { emoji: "☕", bg: "bg-stone-50", iconBg: "bg-stone-100" },
+      { emoji: "🧹", bg: "bg-teal-50", iconBg: "bg-teal-100" },
+    ];
+
+    // Keyword-based matching
+    if (n.includes("vegetable") || n.includes("veggie") || n.includes("green"))
+      return { emoji: "🥬", bg: "bg-green-50", iconBg: "bg-green-100" };
+    if (n.includes("fruit"))
+      return { emoji: "🍎", bg: "bg-red-50", iconBg: "bg-red-100" };
+    if (n.includes("dairy") || n.includes("milk"))
+      return { emoji: "🥛", bg: "bg-blue-50", iconBg: "bg-blue-100" };
+    if (n.includes("bread") || n.includes("bakery") || n.includes("bake"))
+      return { emoji: "🍞", bg: "bg-amber-50", iconBg: "bg-amber-100" };
+    if (n.includes("meat") || n.includes("chicken") || n.includes("fish") || n.includes("seafood"))
+      return { emoji: "🍖", bg: "bg-orange-50", iconBg: "bg-orange-100" };
+    if (n.includes("snack") || n.includes("chip") || n.includes("biscuit"))
+      return { emoji: "🍪", bg: "bg-yellow-50", iconBg: "bg-yellow-100" };
+    if (n.includes("beverage") || n.includes("drink") || n.includes("juice"))
+      return { emoji: "🧃", bg: "bg-pink-50", iconBg: "bg-pink-100" };
+    if (n.includes("coffee") || n.includes("tea"))
+      return { emoji: "☕", bg: "bg-stone-50", iconBg: "bg-stone-100" };
+    if (n.includes("frozen") || n.includes("ice"))
+      return { emoji: "🧊", bg: "bg-cyan-50", iconBg: "bg-cyan-100" };
+    if (n.includes("clean") || n.includes("household") || n.includes("detergent"))
+      return { emoji: "🧹", bg: "bg-teal-50", iconBg: "bg-teal-100" };
+    if (n.includes("personal") || n.includes("care") || n.includes("hygiene") || n.includes("beauty"))
+      return { emoji: "🧴", bg: "bg-purple-50", iconBg: "bg-purple-100" };
+    if (n.includes("rice") || n.includes("grain") || n.includes("dal") || n.includes("pulse") || n.includes("atta"))
+      return { emoji: "🌾", bg: "bg-lime-50", iconBg: "bg-lime-100" };
+    if (n.includes("oil") || n.includes("ghee") || n.includes("masala") || n.includes("spice"))
+      return { emoji: "🫒", bg: "bg-emerald-50", iconBg: "bg-emerald-100" };
+    if (n.includes("baby") || n.includes("infant"))
+      return { emoji: "🍼", bg: "bg-pink-50", iconBg: "bg-pink-100" };
+    if (n.includes("pet"))
+      return { emoji: "🐾", bg: "bg-amber-50", iconBg: "bg-amber-100" };
+    if (n.includes("organic") || n.includes("natural"))
+      return { emoji: "🌿", bg: "bg-emerald-50", iconBg: "bg-emerald-100" };
+    if (n.includes("noodle") || n.includes("pasta") || n.includes("instant"))
+      return { emoji: "🍜", bg: "bg-orange-50", iconBg: "bg-orange-100" };
+    if (n.includes("sweet") || n.includes("chocolate") || n.includes("candy"))
+      return { emoji: "🍫", bg: "bg-rose-50", iconBg: "bg-rose-100" };
+    if (n.includes("egg"))
+      return { emoji: "🥚", bg: "bg-yellow-50", iconBg: "bg-yellow-100" };
+
+    // Fallback — cycle through styles based on index
+    return styles[index % styles.length];
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -37,7 +97,7 @@ export default function Home() {
 
       {/* Categories Section */}
       <section className="py-16">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-10">
           <div>
             <h2 className="text-3xl font-bold text-gray-900">Shop by Category</h2>
             <p className="text-gray-500 mt-1">Browse our wide selection of fresh groceries</p>
@@ -54,21 +114,37 @@ export default function Home() {
         </div>
 
         {categories.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => navigate(`/AllProducts?category=${category.id}`)}
-                className="group flex flex-col items-center gap-3 p-6 bg-white rounded-2xl border border-gray-100 hover:border-green-200 hover:shadow-lg hover:shadow-green-100/50 transition-all duration-300 hover:-translate-y-1"
-              >
-                <div className="w-14 h-14 bg-green-50 group-hover:bg-green-100 rounded-2xl flex items-center justify-center transition-colors duration-300">
-                  <span className="text-2xl">🛒</span>
-                </div>
-                <span className="text-sm font-medium text-gray-700 group-hover:text-green-700 text-center transition-colors">
-                  {category.name}
-                </span>
-              </button>
-            ))}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5">
+            {categories.map((category, index) => {
+              const categoryStyle = getCategoryStyle(category.name, index);
+              return (
+                <button
+                  key={category.id}
+                  onClick={() => navigate(`/AllProducts?category=${category.id}`)}
+                  className="group relative flex flex-col items-center gap-4 p-6 bg-white rounded-2xl border border-gray-100 hover:border-transparent hover:shadow-xl hover:shadow-gray-200/60 transition-all duration-300 hover:-translate-y-1.5 overflow-hidden"
+                >
+                  {/* Background gradient on hover */}
+                  <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${categoryStyle.bg}`} />
+
+                  {/* Icon */}
+                  <div className={`relative w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 ${categoryStyle.iconBg} group-hover:scale-110`}>
+                    <span className="text-3xl">{categoryStyle.emoji}</span>
+                  </div>
+
+                  {/* Name */}
+                  <span className="relative text-sm font-semibold text-gray-800 group-hover:text-gray-900 text-center transition-colors leading-tight">
+                    {category.name}
+                  </span>
+
+                  {/* Arrow indicator on hover */}
+                  <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         ) : (
           !loading && <p className="text-gray-400 text-center">No categories available</p>
