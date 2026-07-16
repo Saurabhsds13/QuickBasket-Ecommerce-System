@@ -9,6 +9,12 @@ import CheckoutPage from "./pages/CheckoutPage.jsx";
 import AllProducts from "./pages/AllProducts.jsx";
 import CartPage from "./pages/CartPage.jsx";
 import OrderConfirmationPage from "./pages/OrderConfirmationPage.jsx";
+import OrdersPage from "./pages/OrdersPage.jsx";
+import ProfilePage from "./pages/ProfilePage.jsx";
+import AddressesPage from "./pages/AddressesPage.jsx";
+import WishlistPage from "./pages/WishlistPage.jsx";
+import ProductDetailPage from "./pages/ProductDetailPage.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 export default function App() {
   return (
@@ -18,16 +24,33 @@ export default function App() {
 
         <div className="flex-grow">
           <Routes>
+            {/* Public Routes */}
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/AllProducts" element={<AllProducts />} />
+            <Route path="/product/:id" element={<ProductDetailPage />} />
             <Route path="/cart" element={<CartPage />} />
-            <Route
-              path="/order-confirmation"
-              element={<OrderConfirmationPage />}
-            />
+
+            {/* Protected Routes — require authentication */}
+            <Route path="/checkout" element={
+              <ProtectedRoute><CheckoutPage /></ProtectedRoute>
+            } />
+            <Route path="/order-confirmation" element={
+              <ProtectedRoute><OrderConfirmationPage /></ProtectedRoute>
+            } />
+            <Route path="/orders" element={
+              <ProtectedRoute><OrdersPage /></ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute><ProfilePage /></ProtectedRoute>
+            } />
+            <Route path="/addresses" element={
+              <ProtectedRoute><AddressesPage /></ProtectedRoute>
+            } />
+            <Route path="/wishlist" element={
+              <ProtectedRoute><WishlistPage /></ProtectedRoute>
+            } />
           </Routes>
         </div>
         <FloatingChat />

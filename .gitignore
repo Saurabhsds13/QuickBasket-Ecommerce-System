@@ -5,6 +5,10 @@ target/
 *.war
 *.log
 
+# Sensitive config - DO NOT commit secrets
+**/application-local.properties
+**/application-prod.properties
+
 # IDE files
 .idea/
 *.iml
@@ -16,20 +20,23 @@ target/
 
 # Maven
 /logs
-.mvn/
-!**/src/main/resources/static/**
+!.mvn/wrapper/maven-wrapper.jar
 
 # === Node / React ===
 node_modules/
 build/
+dist/
 .env
-package-lock.json
+.env.*
 yarn.lock
 npm-debug.log*
 
 # OS-specific
 .DS_Store
 Thumbs.db
-/.metadata/
+desktop.ini
 
+# Eclipse metadata
 .metadata/
+DMART-CLIENT/.vite/deps/_metadata.json
+DMART-CLIENT/.vite/deps/package.json

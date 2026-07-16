@@ -1,0 +1,142 @@
+package com.dmart.clone.service;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.dmart.clone.dto.OrderDto;
+import com.dmart.clone.dto.OrderItemDto;
+import com.dmart.clone.exception.ResourceNotFoundException;
+import com.dmart.clone.model.CartItem;
+import com.dmart.clone.model.Order;
+import com.dmart.clone.model.OrderItem;
+import com.dmart.clone.model.OrderStatus;
+import com.dmart.clone.model.User;
+import com.dmart.clone.repository.CartRepository;
+import com.dmart.clone.repository.OrderRepository;
+
+@Service
+@Transactional
+public class OrderServiceImpl implements OrderService {
+
+	@Autowired
+	private OrderRepository orderRepository;
+
+	@Autowired
+	private CartRepository cartRepository;
+
+	@Autowired
+	private ProductImageService productImageService;
+
+	public Order placeOrder(User user) {
+		List<CartItem> cartItems = cartRepository.findByUser(user);
+		if (cartItems.isEmpty())
+			throw new RuntimeException("Cart is empty");
+
+		Order order = new Order();
+		order.setUser(user);
+		order.setCreatedAt(Instant.now());
+		order.setUpdatedAt(Instant.now());
+		order.setStatus(OrderStatus.PENDING);
+
+		List<OrderItem> orderItems = cartItems.stream().map(ci -> {
+			OrderItem item = new OrderItem();
+			item.setOrder(order);
+			item.setProduct(ci.getProduct());
+			item.setQuantity(ci.getQuantity());
+			item.setPrice(ci.getProduct().getPrice() * ci.getQuantity());
+			return item;
+		}).toList();
+
+		order.setOrderItems(orderItems);
+		order.setTotalPrice(orderItems.stream().mapToDouble(OrderItem::getPrice).sum());
+
+		Order saved = orderRepository.save(order);
+		cartRepository.deleteAll(cartItems);
+		return saved;
+	}
+
+	@Override
+	public List<OrderDto> getOrdersByUser(User user) {
+		return orderRepository.findByUserOrderByCreatedAtDesc(user).stream()
+				.map(this::mapToDto)
+				.collect(Collectors.toList());
+	}
+
+	@Override
+	public OrderDto getOrderById(User user, Long orderId) {
+		Order order = orderRepository.findByIdWithItems(orderId)
+				.orElseThrow(() -> new ResourceNotFoundException("Order not found with id=" + orderId));
+
+		if (!order.getUser().getId().equals(user.getId())) {
+			throw new RuntimeException("You can only view your own orders");
+		}
+
+		return mapToDto(order);
+	}
+
+	@Override
+	public OrderDto cancelOrder(User user, Long orderId, String reason) {
+		Order order = orderRepository.findByIdWithItems(orderId)
+				.orElseThrow(() -> new ResourceNotFoundException("Order not found with id=" + orderId));
+
+		if (!order.getUser().getId().equals(user.getId())) {
+			throw new RuntimeException("You can only cancel your own orders");
+		}
+
+		if (order.getStatus() == OrderStatus.SHIPPED || order.getStatus() == OrderStatus.DELIVERED) {
+			throw new RuntimeException("Cannot cancel order that has already been shipped");
+		}
+
+		if (order.getStatus() == OrderStatus.CANCELLED) {
+			throw new RuntimeException("Order is already cancelled");
+		}
+
+		order.setStatus(OrderStatus.CANCELLED);
+		order.setCancellationReason(reason);
+		order.setUpdatedAt(Instant.now());
+		orderRepository.save(order);
+
+		return mapToDto(order);
+	}
+
+	private OrderDto mapToDto(Order order) {
+		List<OrderItemDto> items = List.of();
+		if (order.getOrderItems() != null) {
+			items = order.getOrderItems().stream().map(oi -> {
+				String productName = oi.getProduct() != null ? oi.getProduct().getName() : "Unknown Product";
+				String productImage = null;
+				if (oi.getProduct() != null) {
+					productImage = productImageService.getImagesByProduct(oi.getProduct()).stream()
+							.filter(img -> Boolean.TRUE.equals(img.getIsPrimary()))
+							.map(com.dmart.clone.model.ProductImage::getImageUrl)
+							.findFirst()
+							.orElse(null);
+				}
+				return new OrderItemDto(
+						oi.getId(),
+						oi.getProduct() != null ? oi.getProduct().getId() : null,
+						productName,
+						productImage,
+						oi.getQuantity(),
+						oi.getPrice()
+				);
+			}).collect(Collectors.toList());
+		}
+
+		return new OrderDto(
+				order.getId(),
+				order.getUser().getUsername(),
+				order.getTotalPrice(),
+				order.getStatus(),
+				order.getCreatedAt(),
+				order.getUpdatedAt(),
+				items,
+				order.getCancellationReason()
+		);
+	}
+}

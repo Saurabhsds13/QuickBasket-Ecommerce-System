@@ -1,6 +1,6 @@
 # 🛒 Full Stack E-Commerce Platform
 
-This is a full-stack clone of [Ecommerce Site] built as a **learning-focused prototype** and **technical skills showcase**.  
+This is a full-stack clone of Ecommerce Site built as a **learning-focused prototype** and **technical skills showcase**.  
 The project is structured as a **monorepo** with both backend and frontend code organized under one repository.
 
 ---
