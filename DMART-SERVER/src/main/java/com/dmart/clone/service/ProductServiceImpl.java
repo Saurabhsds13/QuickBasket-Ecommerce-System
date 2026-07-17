@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -82,5 +83,43 @@ public class ProductServiceImpl implements ProductService {
 		return new ProductViewDto(product.getId(), product.getName(), product.getDescription(),
 				product.getCategory() != null ? product.getCategory().getName() : null, product.getPrice(),
 				product.getStockQuantity(), primaryImageUrl);
+	}
+
+	@Override
+	public List<ProductViewDto> getBestSellingProducts(int limit) {
+		log.info("Fetching top {} best-selling products", limit);
+		List<Product> products = productRepository.findBestSellingProducts(PageRequest.of(0, limit));
+
+		// If not enough order data, fall back to newest products
+		if (products.size() < limit) {
+			List<Long> existingIds = products.stream().map(Product::getId).toList();
+			List<Product> newest = productRepository.findAll(PageRequest.of(0, limit, org.springframework.data.domain.Sort.by("createdAt").descending())).getContent();
+			for (Product p : newest) {
+				if (!existingIds.contains(p.getId()) && products.size() < limit) {
+					products.add(p);
+				}
+			}
+		}
+
+		return products.stream().map(this::mapToProductViewDto).collect(Collectors.toList());
+	}
+
+	@Override
+	public List<ProductViewDto> getTopRatedProducts(int limit) {
+		log.info("Fetching top {} rated products", limit);
+		List<Product> products = productRepository.findTopRatedProducts(PageRequest.of(0, limit));
+
+		// If not enough reviews, fall back to newest products
+		if (products.size() < limit) {
+			List<Long> existingIds = products.stream().map(Product::getId).toList();
+			List<Product> newest = productRepository.findAll(PageRequest.of(0, limit, org.springframework.data.domain.Sort.by("createdAt").descending())).getContent();
+			for (Product p : newest) {
+				if (!existingIds.contains(p.getId()) && products.size() < limit) {
+					products.add(p);
+				}
+			}
+		}
+
+		return products.stream().map(this::mapToProductViewDto).collect(Collectors.toList());
 	}
 }

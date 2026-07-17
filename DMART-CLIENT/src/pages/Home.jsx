@@ -4,12 +4,13 @@ import HeroBanner from "../components/HeroBanner.jsx";
 import BenefitsSection from "../components/BenefitsSection.jsx";
 import NewsletterSignup from "../components/NewsletterSignup.jsx";
 import ProductCard from "../components/ProductCard.jsx";
-import { getProducts, getCategories } from "../services/api";
+import { getProducts, getCategories, getBestSellingProducts, getTopRatedProducts } from "../services/api";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
 export default function Home() {
   const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [topRatedProducts, setTopRatedProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -77,12 +78,14 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [productsRes, categoriesRes] = await Promise.all([
-          getProducts(),
+        const [bestSellingRes, topRatedRes, categoriesRes] = await Promise.all([
+          getBestSellingProducts(8),
+          getTopRatedProducts(8),
           getCategories(),
         ]);
-        setFeaturedProducts(productsRes.data.slice(0, 8)); // Show first 8
-        setCategories(categoriesRes.data.slice(0, 6)); // Show first 6
+        setFeaturedProducts(bestSellingRes.data);
+        setTopRatedProducts(topRatedRes.data);
+        setCategories(categoriesRes.data.slice(0, 6));
       } catch (err) {
         console.error("Error fetching home data:", err);
       } finally {
@@ -172,12 +175,12 @@ export default function Home() {
         )}
       </section>
 
-      {/* Featured Products */}
+      {/* Best Sellers */}
       <section className="py-16 border-t border-gray-100">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-3xl font-bold text-gray-900">Featured Products</h2>
-            <p className="text-gray-500 mt-1">Handpicked fresh items just for you</p>
+            <h2 className="text-3xl font-bold text-gray-900">Best Sellers</h2>
+            <p className="text-gray-500 mt-1">Most popular products loved by our customers</p>
           </div>
           <button
             onClick={() => navigate("/AllProducts")}
@@ -191,7 +194,7 @@ export default function Home() {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="bg-white rounded-2xl border border-gray-100 overflow-hidden animate-pulse">
                 <div className="h-48 bg-gray-100"></div>
@@ -205,7 +208,7 @@ export default function Home() {
             ))}
           </div>
         ) : featuredProducts.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {featuredProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
@@ -214,7 +217,6 @@ export default function Home() {
           <p className="text-gray-400 text-center py-12">No products available yet.</p>
         )}
 
-        {/* Mobile view all button */}
         <div className="md:hidden text-center mt-8">
           <button
             onClick={() => navigate("/AllProducts")}
@@ -224,6 +226,33 @@ export default function Home() {
           </button>
         </div>
       </section>
+
+      {/* Top Rated */}
+      {topRatedProducts.length > 0 && (
+        <section className="py-16 border-t border-gray-100">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900">Top Rated</h2>
+              <p className="text-gray-500 mt-1">Highest rated by our community</p>
+            </div>
+            <button
+              onClick={() => navigate("/AllProducts")}
+              className="hidden md:flex items-center gap-1 text-green-600 font-medium hover:text-green-700 transition"
+            >
+              View All
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {topRatedProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Benefits */}
       <BenefitsSection />

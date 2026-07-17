@@ -1,24 +1,31 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
 import { useCart } from "../context/CartContext";
 import {
-  getProducts,
   getCategories,
   searchProducts,
 } from "../services/api";
+
+const PAGE_SIZE = 12;
 
 const AllProducts = () => {
   const { addToCart } = useCart();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("search") || "";
   const categoryFromUrl = searchParams.get("category") || "";
   const [selectedCategory, setSelectedCategory] = useState(
     categoryFromUrl ? Number(categoryFromUrl) : null
   );
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
 
   // Price filter state
   const [minPrice, setMinPrice] = useState("");
@@ -29,7 +36,7 @@ const AllProducts = () => {
   // Mobile filter drawer
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
-  // Sync selected category when URL param changes (e.g. back/forward navigation)
+  // Sync selected category when URL param changes
   useEffect(() => {
     const urlCategory = categoryFromUrl ? Number(categoryFromUrl) : null;
     if (urlCategory !== selectedCategory) {
@@ -49,39 +56,58 @@ const AllProducts = () => {
     fetchCategories();
   }, []);
 
+  // Reset and fetch when filters change
   useEffect(() => {
-    fetchProducts();
+    setProducts([]);
+    setCurrentPage(0);
+    fetchProducts(0, true);
   }, [searchQuery, selectedCategory, sortBy, sortDir]);
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (page = 0, reset = false) => {
     try {
-      setIsLoading(true);
-
-      const hasFilters = searchQuery || selectedCategory || minPrice || maxPrice;
-      const hasCustomSort = sortBy !== "createdAt" || sortDir !== "desc";
-
-      if (hasFilters || hasCustomSort) {
-        const params = {
-          keyword: searchQuery || undefined,
-          categoryId: selectedCategory || undefined,
-          minPrice: minPrice || undefined,
-          maxPrice: maxPrice || undefined,
-          sortBy,
-          sortDir,
-          page: 0,
-          size: 50,
-        };
-        const res = await searchProducts(params);
-        setProducts(res.data.content || res.data);
+      if (reset) {
+        setIsLoading(true);
       } else {
-        const res = await getProducts();
-        setProducts(res.data);
+        setIsLoadingMore(true);
       }
+
+      const params = {
+        keyword: searchQuery || undefined,
+        categoryId: selectedCategory || undefined,
+        minPrice: minPrice || undefined,
+        maxPrice: maxPrice || undefined,
+        sortBy,
+        sortDir,
+        page,
+        size: PAGE_SIZE,
+      };
+
+      const res = await searchProducts(params);
+      const data = res.data;
+
+      const newProducts = data.content || data;
+      const total = data.totalElements || newProducts.length;
+      const isLast = data.last !== undefined ? data.last : true;
+
+      if (reset) {
+        setProducts(newProducts);
+      } else {
+        setProducts((prev) => [...prev, ...newProducts]);
+      }
+
+      setTotalElements(total);
+      setHasMore(!isLast);
+      setCurrentPage(page);
     } catch (error) {
       console.error("Error fetching products:", error);
     } finally {
       setIsLoading(false);
+      setIsLoadingMore(false);
     }
+  };
+
+  const handleLoadMore = () => {
+    fetchProducts(currentPage + 1, false);
   };
 
   const handleCategoryClick = (categoryId) => {
@@ -89,7 +115,9 @@ const AllProducts = () => {
   };
 
   const handleFilter = () => {
-    fetchProducts();
+    setProducts([]);
+    setCurrentPage(0);
+    fetchProducts(0, true);
   };
 
   const handleClearFilters = () => {
@@ -106,6 +134,25 @@ const AllProducts = () => {
     maxPrice,
     sortBy !== "createdAt" || sortDir !== "desc",
   ].filter(Boolean).length;
+
+  // Group products by category (alphabetically) when no specific filters are active
+  const isDefaultView = !searchQuery && !selectedCategory && !minPrice && !maxPrice && sortBy === "createdAt" && sortDir === "desc";
+
+  const groupedProducts = useMemo(() => {
+    if (!isDefaultView || products.length === 0) return null;
+
+    const groups = {};
+    products.forEach((product) => {
+      const catName = product.categoryName || "Other";
+      if (!groups[catName]) groups[catName] = [];
+      groups[catName].push(product);
+    });
+
+    // Sort category keys alphabetically
+    return Object.keys(groups)
+      .sort((a, b) => a.localeCompare(b))
+      .map((key) => ({ name: key, products: groups[key] }));
+  }, [products, isDefaultView]);
 
   // Shared filter sidebar content
   const FilterContent = () => (
@@ -221,7 +268,7 @@ const AllProducts = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans antialiased">
-      {/* Mobile Filter Button - Fixed at bottom on mobile */}
+      {/* Mobile Filter Button */}
       <div className="md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-40">
         <button
           onClick={() => setIsMobileFilterOpen(true)}
@@ -239,17 +286,14 @@ const AllProducts = () => {
         </button>
       </div>
 
-      {/* Mobile Filter Drawer - Slides up from bottom */}
+      {/* Mobile Filter Drawer */}
       {isMobileFilterOpen && (
         <div className="md:hidden fixed inset-0 z-50">
-          {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => setIsMobileFilterOpen(false)}
           />
-          {/* Drawer */}
           <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[85vh] overflow-y-auto animate-slide-up">
-            {/* Handle */}
             <div className="sticky top-0 bg-white pt-3 pb-2 px-6 border-b border-gray-100 rounded-t-2xl">
               <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-3" />
               <div className="flex items-center justify-between">
@@ -273,7 +317,7 @@ const AllProducts = () => {
 
       <main className="container mx-auto px-4 md:px-8 lg:px-12 py-8">
         <div className="flex gap-8">
-          {/* Desktop Sidebar - Sticky with proper height calc */}
+          {/* Desktop Sidebar */}
           <aside className="hidden md:block w-60 flex-shrink-0">
             <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pr-4 pb-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               <FilterContent />
@@ -286,11 +330,15 @@ const AllProducts = () => {
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-                  {searchQuery ? `Results for "${searchQuery}"` : "All Products"}
+                  {searchQuery
+                    ? `Results for "${searchQuery}"`
+                    : selectedCategory
+                    ? categories.find((c) => c.id === selectedCategory)?.name || "Category"
+                    : "All Products"}
                 </h1>
-                {products.length > 0 && !isLoading && (
+                {totalElements > 0 && !isLoading && (
                   <p className="text-sm text-gray-500 mt-1">
-                    {products.length} {products.length === 1 ? "product" : "products"}
+                    Showing {products.length} of {totalElements} {totalElements === 1 ? "product" : "products"}
                   </p>
                 )}
               </div>
@@ -340,7 +388,7 @@ const AllProducts = () => {
                   <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 text-xs font-medium rounded-full border border-green-200">
                     Min: ₹{minPrice}
                     <button
-                      onClick={() => setMinPrice("")}
+                      onClick={() => { setMinPrice(""); handleFilter(); }}
                       className="ml-1 hover:text-green-900"
                     >
                       ×
@@ -351,7 +399,7 @@ const AllProducts = () => {
                   <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 text-xs font-medium rounded-full border border-green-200">
                     Max: ₹{maxPrice}
                     <button
-                      onClick={() => setMaxPrice("")}
+                      onClick={() => { setMaxPrice(""); handleFilter(); }}
                       className="ml-1 hover:text-green-900"
                     >
                       ×
@@ -367,24 +415,88 @@ const AllProducts = () => {
               </div>
             )}
 
-            {/* Products Grid */}
+            {/* Products */}
             {isLoading ? (
-              <div className="flex justify-center items-center h-64">
-                <div className="flex flex-col items-center gap-3">
-                  <div className="w-10 h-10 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
-                  <p className="text-gray-500 text-sm">Loading products...</p>
-                </div>
-              </div>
-            ) : products.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-                {products.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    addToCart={addToCart}
-                  />
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
+                {[...Array(8)].map((_, i) => (
+                  <div key={i} className="bg-white rounded-2xl border border-gray-100 overflow-hidden animate-pulse">
+                    <div className="h-48 bg-gray-100"></div>
+                    <div className="p-4 space-y-3">
+                      <div className="h-3 bg-gray-100 rounded w-1/3"></div>
+                      <div className="h-4 bg-gray-100 rounded w-3/4"></div>
+                      <div className="h-3 bg-gray-100 rounded w-full"></div>
+                      <div className="h-5 bg-gray-100 rounded w-1/4 mt-2"></div>
+                    </div>
+                  </div>
                 ))}
               </div>
+            ) : products.length > 0 ? (
+              <>
+                {/* Category-grouped view (default) */}
+                {groupedProducts ? (
+                  <div className="space-y-12">
+                    {groupedProducts.map((group) => (
+                      <div key={group.name}>
+                        <div className="flex items-center gap-3 mb-5">
+                          <h2 className="text-lg font-bold text-gray-900">{group.name}</h2>
+                          <div className="flex-1 h-px bg-gray-200"></div>
+                          <span className="text-xs text-gray-400 font-medium">
+                            {group.products.length} {group.products.length === 1 ? "item" : "items"}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
+                          {group.products.map((product) => (
+                            <ProductCard
+                              key={product.id}
+                              product={product}
+                              addToCart={addToCart}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  /* Flat grid view (when filters/sort active) */
+                  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
+                    {products.map((product) => (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        addToCart={addToCart}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {/* Load More */}
+                {hasMore && (
+                  <div className="text-center mt-12">
+                    <button
+                      onClick={handleLoadMore}
+                      disabled={isLoadingMore}
+                      className="inline-flex items-center gap-2 px-8 py-3.5 bg-white border border-gray-200 text-gray-700 font-medium rounded-xl hover:border-gray-300 hover:shadow-sm active:scale-[0.98] disabled:opacity-60 transition-all"
+                    >
+                      {isLoadingMore ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                          Loading...
+                        </>
+                      ) : (
+                        <>
+                          Load More Products
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </>
+                      )}
+                    </button>
+                    <p className="text-xs text-gray-400 mt-3">
+                      Showing {products.length} of {totalElements} products
+                    </p>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="text-center py-20">
                 <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">

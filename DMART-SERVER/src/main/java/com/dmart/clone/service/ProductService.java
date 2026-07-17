@@ -16,4 +16,8 @@ public interface ProductService {
 	List<ProductViewDto> getProductsByCategory(Long categoryId);
 
 	Page<ProductViewDto> searchProducts(String keyword, Long categoryId, Double minPrice, Double maxPrice, Pageable pageable);
+
+	List<ProductViewDto> getBestSellingProducts(int limit);
+
+	List<ProductViewDto> getTopRatedProducts(int limit);
 }
