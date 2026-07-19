@@ -33,6 +33,18 @@ public class ProductController {
 		return ResponseEntity.ok(productService.getAllProducts());
 	}
 
+	@GetMapping("/best-selling")
+	public ResponseEntity<List<ProductViewDto>> getBestSelling(
+			@RequestParam(defaultValue = "8") int limit) {
+		return ResponseEntity.ok(productService.getBestSellingProducts(Math.min(limit, 20)));
+	}
+
+	@GetMapping("/top-rated")
+	public ResponseEntity<List<ProductViewDto>> getTopRated(
+			@RequestParam(defaultValue = "8") int limit) {
+		return ResponseEntity.ok(productService.getTopRatedProducts(Math.min(limit, 20)));
+	}
+
 	@GetMapping("/{id}")
 	public ResponseEntity<ProductViewDto> getProductById(@PathVariable Long id) {
 		ProductViewDto p = productService.getById(id);

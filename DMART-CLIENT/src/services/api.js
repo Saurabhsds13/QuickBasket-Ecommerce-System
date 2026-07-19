@@ -131,6 +131,12 @@ export const getProductsByCategory = (categoryId) =>
 export const searchProducts = (params) =>
   api.get("/public/products/search", { params });
 
+export const getBestSellingProducts = (limit = 8) =>
+  api.get("/public/products/best-selling", { params: { limit } });
+
+export const getTopRatedProducts = (limit = 8) =>
+  api.get("/public/products/top-rated", { params: { limit } });
+
 // ============ PRODUCT REVIEWS (Public read, Auth write) ============
 export const getProductReviews = (productId) =>
   api.get(`/public/products/${productId}/reviews`);

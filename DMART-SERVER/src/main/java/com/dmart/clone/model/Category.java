@@ -18,6 +18,7 @@ public class Category {
 	private String name;
 	@Lob
 	private String description;
+	private String imageUrl;
 
 	public Long getId() {
 		return id;
@@ -43,20 +44,28 @@ public class Category {
 		this.description = description;
 	}
 
-	public Category(Long id, String name, String description) {
+	public String getImageUrl() {
+		return imageUrl;
+	}
+
+	public void setImageUrl(String imageUrl) {
+		this.imageUrl = imageUrl;
+	}
+
+	public Category(Long id, String name, String description, String imageUrl) {
 		super();
 		this.id = id;
 		this.name = name;
 		this.description = description;
+		this.imageUrl = imageUrl;
 	}
 
 	public Category() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override
 	public String toString() {
-		return "Category [id=" + id + ", name=" + name + ", description=" + description + "]";
+		return "Category [id=" + id + ", name=" + name + ", description=" + description + ", imageUrl=" + imageUrl + "]";
 	}
 }
