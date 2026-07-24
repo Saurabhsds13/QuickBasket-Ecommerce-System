@@ -367,13 +367,33 @@ function OrderCard({ order, onCancelClick, onReturnClick, navigate }) {
 
           {/* Return button for delivered orders */}
           {canReturn && (
-            <div className="mt-4 pt-3 border-t border-gray-200">
+            <div className="mt-4 pt-3 border-t border-gray-200 flex flex-wrap gap-3">
               <button
                 onClick={() => onReturnClick(order.id)}
                 className="inline-flex items-center gap-2 bg-orange-50 text-orange-700 px-4 py-2.5 rounded-lg hover:bg-orange-100 transition font-medium text-sm border border-orange-200"
               >
                 <RotateCcw className="w-4 h-4" />
                 Request Return
+              </button>
+              <button
+                onClick={() => navigate(`/invoice/${order.id}`)}
+                className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2.5 rounded-lg hover:bg-blue-100 transition font-medium text-sm border border-blue-200"
+              >
+                <Package className="w-4 h-4" />
+                Download Invoice
+              </button>
+            </div>
+          )}
+
+          {/* Invoice button for delivered orders with return already requested */}
+          {order.status === "DELIVERED" && order.returnRequested && (
+            <div className="mt-4 pt-3 border-t border-gray-200">
+              <button
+                onClick={() => navigate(`/invoice/${order.id}`)}
+                className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2.5 rounded-lg hover:bg-blue-100 transition font-medium text-sm border border-blue-200"
+              >
+                <Package className="w-4 h-4" />
+                Download Invoice
               </button>
             </div>
           )}

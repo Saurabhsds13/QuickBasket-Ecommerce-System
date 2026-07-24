@@ -19,3 +19,21 @@ body {
 .gradient-button:hover {
   background-position: right center;
 }
+
+
+/* Print styles for Invoice */
+@media print {
+  nav, footer, .print\\:hidden {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .min-h-screen {
+    min-height: auto !important;
+  }
+}

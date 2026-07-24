@@ -15,6 +15,7 @@ import AddressesPage from "./pages/AddressesPage.jsx";
 import WishlistPage from "./pages/WishlistPage.jsx";
 import ProductDetailPage from "./pages/ProductDetailPage.jsx";
 import NotificationsPage from "./pages/NotificationsPage.jsx";
+import InvoicePage from "./pages/InvoicePage.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 export default function App() {
@@ -54,6 +55,9 @@ export default function App() {
             } />
             <Route path="/notifications" element={
               <ProtectedRoute><NotificationsPage /></ProtectedRoute>
+            } />
+            <Route path="/invoice/:orderId" element={
+              <ProtectedRoute><InvoicePage /></ProtectedRoute>
             } />
           </Routes>
         </div>
