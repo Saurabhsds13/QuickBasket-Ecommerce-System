@@ -5,6 +5,7 @@ import BenefitsSection from "../components/BenefitsSection.jsx";
 import NewsletterSignup from "../components/NewsletterSignup.jsx";
 import ProductCard from "../components/ProductCard.jsx";
 import { getProducts, getCategories, getBestSellingProducts, getTopRatedProducts } from "../services/api";
+import { getRecentlyViewedProducts } from "../hooks/useRecentlyViewed";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
@@ -12,6 +13,7 @@ export default function Home() {
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [topRatedProducts, setTopRatedProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [recentlyViewed, setRecentlyViewed] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -93,6 +95,8 @@ export default function Home() {
       }
     };
     fetchData();
+    // Load recently viewed from localStorage
+    setRecentlyViewed(getRecentlyViewedProducts());
   }, []);
 
   return (
@@ -248,6 +252,24 @@ export default function Home() {
 
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {topRatedProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Recently Viewed */}
+      {recentlyViewed.length > 0 && (
+        <section className="py-16 border-t border-gray-100">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900">Recently Viewed</h2>
+              <p className="text-gray-500 mt-1">Products you've checked out recently</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {recentlyViewed.slice(0, 8).map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
