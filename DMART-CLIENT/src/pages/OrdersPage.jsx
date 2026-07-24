@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getMyOrders, cancelOrder } from "../services/api";
-import { Package, ChevronDown, ChevronUp, Clock, Truck, CheckCircle, XCircle, ShoppingBag, Plus, X, AlertTriangle } from "lucide-react";
+import { getMyOrders, cancelOrder, createReturnRequest, getReturnByOrderId } from "../services/api";
+import { Package, ChevronDown, ChevronUp, Clock, Truck, CheckCircle, XCircle, ShoppingBag, Plus, X, AlertTriangle, RotateCcw } from "lucide-react";
 import { useToast } from "../components/Toast";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
@@ -123,7 +123,117 @@ function CancelOrderModal({ isOpen, onClose, onConfirm, orderId }) {
   );
 }
 
-function OrderCard({ order, onCancelClick, navigate }) {
+const returnReasons = [
+  "Product is damaged or defective",
+  "Wrong item received",
+  "Product doesn't match description",
+  "Quality not as expected",
+  "Size/fit issue",
+  "Changed my mind",
+  "Other",
+];
+
+// Return Request Modal
+function ReturnRequestModal({ isOpen, onClose, onConfirm, orderId }) {
+  const [selectedReason, setSelectedReason] = useState("");
+  const [customReason, setCustomReason] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleConfirm = async () => {
+    const reason = selectedReason === "Other" ? customReason : selectedReason;
+    if (!reason.trim()) return;
+    setSubmitting(true);
+    await onConfirm(orderId, reason);
+    setSubmitting(false);
+    onClose();
+    setSelectedReason("");
+    setCustomReason("");
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+        {/* Header */}
+        <div className="p-6 pb-4 border-b border-gray-100">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
+                <RotateCcw className="w-5 h-5 text-orange-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Request Return</h3>
+                <p className="text-sm text-gray-500">Order #{orderId}</p>
+              </div>
+            </div>
+            <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100 transition">
+              <X className="w-5 h-5 text-gray-400" />
+            </button>
+          </div>
+        </div>
+
+        {/* Body */}
+        <div className="p-6 space-y-4">
+          <p className="text-sm text-gray-600 font-medium">Why do you want to return this order?</p>
+
+          <div className="space-y-2 max-h-60 overflow-y-auto">
+            {returnReasons.map((reason) => (
+              <label
+                key={reason}
+                className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                  selectedReason === reason
+                    ? "border-orange-300 bg-orange-50"
+                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="returnReason"
+                  value={reason}
+                  checked={selectedReason === reason}
+                  onChange={(e) => setSelectedReason(e.target.value)}
+                  className="w-4 h-4 text-orange-600 focus:ring-orange-500"
+                />
+                <span className="text-sm text-gray-700">{reason}</span>
+              </label>
+            ))}
+          </div>
+
+          {selectedReason === "Other" && (
+            <textarea
+              value={customReason}
+              onChange={(e) => setCustomReason(e.target.value)}
+              placeholder="Please describe the issue..."
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-200 focus:border-orange-400 resize-none text-sm"
+              rows={3}
+            />
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="p-6 pt-4 border-t border-gray-100 flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 py-3 px-4 rounded-xl border border-gray-200 text-gray-700 font-medium text-sm hover:bg-gray-50 transition"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleConfirm}
+            disabled={!selectedReason.trim() || (selectedReason === "Other" && !customReason.trim()) || submitting}
+            className="flex-1 py-3 px-4 rounded-xl bg-orange-600 text-white font-medium text-sm hover:bg-orange-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {submitting ? "Submitting..." : "Submit Return"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function OrderCard({ order, onCancelClick, onReturnClick, navigate }) {
   const [expanded, setExpanded] = useState(false);
   const status = statusConfig[order.status] || statusConfig.PENDING;
   const StatusIcon = status.icon;
@@ -141,6 +251,7 @@ function OrderCard({ order, onCancelClick, navigate }) {
   const itemCount = order.items?.length || 0;
   const canCancel = order.status === "PENDING" || order.status === "CONFIRMED";
   const canAddItems = order.status === "PENDING";
+  const canReturn = order.status === "DELIVERED" && !order.returnRequested;
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
@@ -253,6 +364,29 @@ function OrderCard({ order, onCancelClick, navigate }) {
               </button>
             </div>
           )}
+
+          {/* Return button for delivered orders */}
+          {canReturn && (
+            <div className="mt-4 pt-3 border-t border-gray-200">
+              <button
+                onClick={() => onReturnClick(order.id)}
+                className="inline-flex items-center gap-2 bg-orange-50 text-orange-700 px-4 py-2.5 rounded-lg hover:bg-orange-100 transition font-medium text-sm border border-orange-200"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Request Return
+              </button>
+            </div>
+          )}
+
+          {/* Return status display */}
+          {order.returnStatus && (
+            <div className="mt-3 p-3 bg-orange-50 rounded-lg border border-orange-100">
+              <p className="text-xs font-medium text-orange-600">Return Request</p>
+              <p className="text-sm text-orange-700 mt-0.5">
+                Status: <span className="font-semibold">{order.returnStatus}</span>
+              </p>
+            </div>
+          )}
         </div>
       )}
 
@@ -287,6 +421,7 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [cancelModal, setCancelModal] = useState({ open: false, orderId: null });
+  const [returnModal, setReturnModal] = useState({ open: false, orderId: null });
   const navigate = useNavigate();
   const toast = useToast();
 
@@ -294,7 +429,22 @@ export default function OrdersPage() {
     const fetchOrders = async () => {
       try {
         const res = await getMyOrders();
-        setOrders(res.data);
+        // For each delivered order, check if a return has been requested
+        const ordersData = res.data;
+        const enriched = await Promise.all(
+          ordersData.map(async (order) => {
+            if (order.status === "DELIVERED") {
+              try {
+                const returnRes = await getReturnByOrderId(order.id);
+                return { ...order, returnStatus: returnRes.data.status, returnRequested: true };
+              } catch {
+                return { ...order, returnRequested: false };
+              }
+            }
+            return order;
+          })
+        );
+        setOrders(enriched);
       } catch (err) {
         console.error("Failed to fetch orders:", err);
       } finally {
@@ -311,6 +461,20 @@ export default function OrdersPage() {
       toast.success("Order cancelled successfully");
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to cancel order");
+    }
+  };
+
+  const handleReturnConfirm = async (orderId, reason) => {
+    try {
+      await createReturnRequest(orderId, reason);
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.id === orderId ? { ...o, returnRequested: true, returnStatus: "PENDING" } : o
+        )
+      );
+      toast.success("Return request submitted successfully");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to submit return request");
     }
   };
 
@@ -366,6 +530,7 @@ export default function OrdersPage() {
                 key={order.id}
                 order={order}
                 onCancelClick={(id) => setCancelModal({ open: true, orderId: id })}
+                onReturnClick={(id) => setReturnModal({ open: true, orderId: id })}
                 navigate={navigate}
               />
             ))}
@@ -379,6 +544,14 @@ export default function OrdersPage() {
         orderId={cancelModal.orderId}
         onClose={() => setCancelModal({ open: false, orderId: null })}
         onConfirm={handleCancelConfirm}
+      />
+
+      {/* Return Request Modal */}
+      <ReturnRequestModal
+        isOpen={returnModal.open}
+        orderId={returnModal.orderId}
+        onClose={() => setReturnModal({ open: false, orderId: null })}
+        onConfirm={handleReturnConfirm}
       />
     </div>
   );
