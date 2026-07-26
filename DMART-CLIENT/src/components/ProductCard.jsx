@@ -83,6 +83,22 @@ export default function ProductCard({ product }) {
             {product.description}
           </p>
         )}
+        {/* Rating */}
+        {product.averageRating && product.averageRating > 0 && (
+          <div className="flex items-center gap-1">
+            <div className="flex">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <span
+                  key={star}
+                  className={`text-xs ${star <= Math.round(product.averageRating) ? "text-yellow-400" : "text-gray-300"}`}
+                >
+                  ★
+                </span>
+              ))}
+            </div>
+            <span className="text-xs text-gray-400">{product.averageRating}</span>
+          </div>
+        )}
         <div className="flex items-center justify-between pt-2">
           <span className="text-xl font-bold text-gray-900">
             ₹{product.price?.toFixed(2)}

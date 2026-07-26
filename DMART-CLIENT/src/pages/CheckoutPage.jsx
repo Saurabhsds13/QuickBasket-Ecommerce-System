@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCart } from "../context/CartContext";
-import { useNavigate } from "react-router-dom";
-import { placeOrder, applyCoupon, createPaymentOrder, verifyPayment } from "../services/api";
+import { useNavigate, Link } from "react-router-dom";
+import { placeOrder, applyCoupon, createPaymentOrder, verifyPayment, getAddresses } from "../services/api";
 import { useToast } from "../components/Toast";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
@@ -15,8 +15,38 @@ export default function CheckoutPage() {
   const [couponCode, setCouponCode] = useState("");
   const [couponResult, setCouponResult] = useState(null);
   const [couponError, setCouponError] = useState("");
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddress, setSelectedAddress] = useState(null);
+  const [addressLoading, setAddressLoading] = useState(true);
+
+  // Fetch saved addresses
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      try {
+        const res = await getAddresses();
+        setAddresses(res.data);
+        // Auto-select default address
+        const defaultAddr = res.data.find((a) => a.isDefault);
+        if (defaultAddr) setSelectedAddress(defaultAddr.id);
+        else if (res.data.length > 0) setSelectedAddress(res.data[0].id);
+      } catch (err) {
+        console.error("Failed to fetch addresses:", err);
+      } finally {
+        setAddressLoading(false);
+      }
+    };
+    fetchAddresses();
+  }, []);
 
   const handlePlaceOrder = async () => {
+    if (!selectedAddress && addresses.length > 0) {
+      toast.error("Please select a delivery address");
+      return;
+    }
+    if (addresses.length === 0) {
+      toast.error("Please add a delivery address before placing order");
+      return;
+    }
     try {
       setPlacing(true);
       // Step 1: Place order in backend
@@ -114,10 +144,82 @@ export default function CheckoutPage() {
         <div className="grid md:grid-cols-2 gap-10">
           {/* Left Column */}
           <div className="space-y-8">
+            {/* Delivery Address */}
+            <section className="bg-white rounded-2xl shadow p-6 border border-gray-100">
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                1. Delivery Address
+              </h2>
+              {addressLoading ? (
+                <div className="flex items-center gap-2 text-gray-500 text-sm">
+                  <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                  Loading addresses...
+                </div>
+              ) : addresses.length === 0 ? (
+                <div className="text-center py-6">
+                  <p className="text-gray-500 text-sm mb-3">No saved addresses found.</p>
+                  <Link
+                    to="/addresses"
+                    className="inline-flex items-center gap-2 text-sm font-medium text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100 px-4 py-2 rounded-lg transition"
+                  >
+                    + Add Address
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {addresses.map((addr) => (
+                    <label
+                      key={addr.id}
+                      className={`flex items-start gap-3 p-4 border rounded-xl cursor-pointer transition-all ${
+                        selectedAddress === addr.id
+                          ? "border-green-400 bg-green-50/50 ring-1 ring-green-200"
+                          : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="address"
+                        value={addr.id}
+                        checked={selectedAddress === addr.id}
+                        onChange={() => setSelectedAddress(addr.id)}
+                        className="mt-1 w-4 h-4 text-green-600 focus:ring-green-500"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                            {addr.type || "HOME"}
+                          </span>
+                          {addr.isDefault && (
+                            <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-0.5 rounded">
+                              Default
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-800 font-medium">
+                          {addr.line1}{addr.line2 ? `, ${addr.line2}` : ""}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {addr.city}, {addr.state} - {addr.postalCode}
+                        </p>
+                        {addr.phone && (
+                          <p className="text-xs text-gray-400 mt-1">📞 {addr.phone}</p>
+                        )}
+                      </div>
+                    </label>
+                  ))}
+                  <Link
+                    to="/addresses"
+                    className="inline-flex items-center gap-1 text-sm text-green-600 hover:text-green-700 font-medium mt-2"
+                  >
+                    + Add new address
+                  </Link>
+                </div>
+              )}
+            </section>
+
             {/* Payment Method */}
             <section className="bg-white rounded-2xl shadow p-6 border border-gray-100">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                1. Payment Method
+                2. Payment Method
               </h2>
               <div className="space-y-3">
                 <label className="flex items-center gap-3 p-3 border rounded-lg hover:border-green-500 transition cursor-pointer">
@@ -134,7 +236,7 @@ export default function CheckoutPage() {
             {/* Coupon Code */}
             <section className="bg-white rounded-2xl shadow p-6 border border-gray-100">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                2. Apply Coupon
+                3. Apply Coupon
               </h2>
               <div className="flex gap-2">
                 <input
@@ -170,7 +272,7 @@ export default function CheckoutPage() {
             {/* Bill Summary */}
             <section className="bg-white rounded-2xl shadow p-6 border border-gray-100">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                3. Bill Summary
+                4. Bill Summary
               </h2>
               <div className="space-y-2 text-gray-700">
                 <div className="flex justify-between">
@@ -204,7 +306,7 @@ export default function CheckoutPage() {
             {/* Order Items */}
             <section className="bg-white rounded-2xl shadow p-6 border border-gray-100">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                4. Order Items ({cartItems.length})
+                5. Order Items ({cartItems.length})
               </h2>
               <div className="space-y-4 max-h-72 overflow-y-auto pr-2">
                 {cartItems.map((item) => (
