@@ -207,4 +207,25 @@ export const createPaymentOrder = (orderId) =>
 export const verifyPayment = (data) =>
   api.post("/user/payments/verify", data);
 
+// ============ NOTIFICATIONS (Authenticated) ============
+export const getNotifications = () => api.get("/user/notifications");
+
+export const getUnreadNotificationCount = () =>
+  api.get("/user/notifications/unread-count");
+
+export const markNotificationAsRead = (id) =>
+  api.put(`/user/notifications/${id}/read`);
+
+export const markAllNotificationsAsRead = () =>
+  api.put("/user/notifications/read-all");
+
+// ============ RETURN REQUESTS (Authenticated) ============
+export const createReturnRequest = (orderId, reason) =>
+  api.post("/user/returns", { orderId, reason });
+
+export const getMyReturnRequests = () => api.get("/user/returns");
+
+export const getReturnByOrderId = (orderId) =>
+  api.get(`/user/returns/order/${orderId}`);
+
 export default api;

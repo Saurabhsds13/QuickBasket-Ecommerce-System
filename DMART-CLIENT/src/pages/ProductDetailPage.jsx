@@ -12,6 +12,7 @@ import {
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../components/Toast";
+import { useRecentlyViewed } from "../hooks/useRecentlyViewed";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
@@ -21,6 +22,7 @@ export default function ProductDetailPage() {
   const { addToCart, cartItems, updateQuantity } = useCart();
   const { isAuthenticated } = useAuth();
   const toast = useToast();
+  const { addProduct: addToRecentlyViewed } = useRecentlyViewed();
 
   const [product, setProduct] = useState(null);
   const [reviews, setReviews] = useState([]);
@@ -46,6 +48,8 @@ export default function ProductDetailPage() {
     try {
       const res = await getProductById(id);
       setProduct(res.data);
+      // Track in recently viewed
+      addToRecentlyViewed(res.data);
     } catch (err) {
       console.error("Failed to fetch product:", err);
     } finally {
