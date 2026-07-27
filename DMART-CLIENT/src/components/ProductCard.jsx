@@ -28,6 +28,7 @@ export default function ProductCard({ product }) {
         <img
           src={imageUrl}
           alt={product.name || "Product"}
+          loading="lazy"
           className="max-h-full object-contain transition-transform duration-500 group-hover:scale-110"
           onError={(e) => { e.target.src = "/fallback-product.png"; }}
         />
