@@ -16,6 +16,7 @@ import com.dmart.clone.exception.ResourceNotFoundException;
 import com.dmart.clone.model.Product;
 import com.dmart.clone.model.ProductImage;
 import com.dmart.clone.repository.ProductRepository;
+import com.dmart.clone.repository.ProductReviewRepository;
 
 @Service
 @Transactional(readOnly = true)
@@ -24,10 +25,13 @@ public class ProductServiceImpl implements ProductService {
 
 	private final ProductRepository productRepository;
 	private final ProductImageService productImageService;
+	private final ProductReviewRepository productReviewRepository;
 
-	public ProductServiceImpl(ProductRepository productRepository, ProductImageService productImageService) {
+	public ProductServiceImpl(ProductRepository productRepository, ProductImageService productImageService,
+			ProductReviewRepository productReviewRepository) {
 		this.productRepository = productRepository;
 		this.productImageService = productImageService;
+		this.productReviewRepository = productReviewRepository;
 	}
 
 	@Override
@@ -80,9 +84,11 @@ public class ProductServiceImpl implements ProductService {
 				.filter(img -> Boolean.TRUE.equals(img.getIsPrimary())).map(ProductImage::getImageUrl).findFirst()
 				.orElse(null);
 
+		Double avgRating = productReviewRepository.getAverageRatingByProductId(product.getId());
+
 		return new ProductViewDto(product.getId(), product.getName(), product.getDescription(),
 				product.getCategory() != null ? product.getCategory().getName() : null, product.getPrice(),
-				product.getStockQuantity(), primaryImageUrl);
+				product.getStockQuantity(), primaryImageUrl, avgRating != null ? Math.round(avgRating * 10.0) / 10.0 : null);
 	}
 
 	@Override
