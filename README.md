@@ -1,145 +1,202 @@
-# 🛒 Full Stack E-Commerce Platform
+# QuickBasket — Full-Stack E-Commerce Platform
 
-This is a full-stack clone of Ecommerce Site built as a **learning-focused prototype** and **technical skills showcase**.  
-The project is structured as a **monorepo** with both backend and frontend code organized under one repository.
-
----
-
-## 📌 Project Overview
-
-This e-commerce platform demonstrates a scalable and modular architecture using:
-
-- 🔙 **Spring Boot** (Java) as the backend REST API
-- 🖥 **React.js** as the frontend UI
-- 💽 **MySQL** with a database-first approach for schema design
-
-This application replicates the core functionalities of a modern e-commerce platform, including:
-
-- User registration & login
-- Product catalog browsing
-- Cart management
-- Order placement
-- Address handling
-- Role-based access (Admin & Customer)
-
-
-> 🛠️ Built using a **database-first approach**, where the data model forms the backbone of application logic.
-
-> ✅ This project follows the full Software Development Life Cycle (SDLC), including business requirements, design documentation, implementation, and future scalability considerations.
+A production-grade grocery e-commerce system built with **Spring Boot** and **React**, demonstrating end-to-end software architecture — from secure authentication and payment processing to real-time notifications and optimized frontend delivery.
 
 ---
 
-## 🎯 Purpose
-
-- To **demonstrate enterprise-grade coding practices**
-- Serve as a **prototype** for scalable e-commerce systems
-- Practice full-stack development with clean separation of concerns
-- Present a ready-to-show project for **interviews, portfolio**, or **client POCs**
-
----
-
-
-## 🧱 Tech Stack
-
-| Layer        | Technology             |
-|--------------|------------------------|
-| Frontend     | React.js, Tailwind CSS |
-| Backend API  | Spring Boot (Java)     |
-| Database     | MySQL                  |
-| ORM/DAO      | Spring Data JPA        |
-| Project Tool | Maven (Java) + npm (JS)|
-| Version Ctrl | Git & GitHub           |
-
----
-
-## 📁 Monorepo Structure
-
+## Architecture
 
 ```
-Ecommerce-clone/
-├── backend/                  # Spring Boot application
-│   ├── src/
-│   │   ├── main/java/com/Ecommerceclone/
-│   │   │   ├── controller/
-│   │   │   ├── service/
-│   │   │   ├── repository/
-│   │   │   ├── entity/
-│   │   │   └── EcommerceCloneApplication.java
-│   │   └── resources/
-│   │       └── application.properties
-│   ├── pom.xml
-│   └── README.md            
-│
-├── frontend/                 # React.js application
-│   ├── src/
-│   ├── public/
-│   ├── package.json
-│   └── README.md            
-│
-├── docs/                     # Documentation assets
-│   ├── SRS.docx
-│   ├── Ecommerce_schema_documentation.xlsx
-│   └── ERD.png               # database ER diagram image
-│
-├── .gitignore
-└── README.md                 # Main readme (this file)
+┌─────────────────────────────────────────────────────────────────┐
+│                        CLIENT (React 19)                        │
+│  Route-level code splitting • Lazy loading • Context API state  │
+└────────────────────────────────┬────────────────────────────────┘
+                                 │ HTTPS / REST
+┌────────────────────────────────▼────────────────────────────────┐
+│                    API SERVER (Spring Boot 3.2)                  │
+│  JWT Auth + Refresh Tokens • Role-based access (USER/ADMIN)     │
+│  Razorpay Payment Integration • Image Upload & Storage          │
+└────────────────────────────────┬────────────────────────────────┘
+                                 │ JPA / Hibernate
+┌────────────────────────────────▼────────────────────────────────┐
+│                        MySQL 8.0                                 │
+│  20 entities • Normalized schema • Indexed queries              │
+└─────────────────────────────────────────────────────────────────┘
 ```
----
-
-## 🚀 How to Run
-
-### Backend (Spring Boot)
-
-1. Clone the repository
-2. Configure DB connection in `application.properties`
-3. Reverse engineer database using JPA tools (e.g., `spring.jpa.hibernate.ddl-auto=none`)
-4. Run `EcommerceServerApplication.java`
-
-### Frontend (React)
-
-1. Navigate to `/frontend`
-2. Run `npm install`
-3. Run `npm start`
 
 ---
 
+## Tech Stack
 
-## 🧩 Database Schema
-
-- MySQL with a well-normalized schema
-- Core Tables: `users`, `products`, `orders`, `order_items`, `addresses`, `cart_items`, `categories`
-- Plus additional: `user_roles`, `payments`, `reviews`, etc.
-
-> 📝 Full schema documentation is available in `/docs/Ecommerce - Schema Documentation.xlsx`
-
----
-
-## ✅ Features
-
-- 🔐 Authentication & Role Management
-- 🛍️ Product Listings with Categories
-- 🧺 Cart and Checkout Flow
-- 📦 Order History and Tracking
-- 🧑 Admin: Add/Edit Products & Categories
-- 📄 RESTful APIs (Swagger Support optional)
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 19, React Router 7, Tailwind CSS, Framer Motion, Lucide Icons |
+| State | Context API (Auth + Cart), localStorage (guest cart, recently viewed) |
+| API Client | Axios with interceptors, silent token refresh, request queuing |
+| Backend | Spring Boot 3.2, Java 17, Spring Security, Spring Data JPA |
+| Auth | JWT (access + refresh tokens), BCrypt, role-based (`USER` / `ADMIN`) |
+| Payments | Razorpay (order creation, client checkout, server-side verification) |
+| Database | MySQL 8.0, 20+ entities, Hibernate DDL |
+| API Docs | SpringDoc OpenAPI (Swagger UI) |
+| Build | Vite 7 (frontend), Maven (backend) |
+| Optimization | Code splitting, manual vendor chunks, lazy image loading |
 
 ---
 
-## 📈 Future Scope
+## Features
 
-- 🧾 Coupon & Discount Management
-- 📤 Email Notifications
-- 💳 Payment Gateway Integration
-- 📦 Delivery Tracking API
-- 📊 Admin Dashboard with Charts
+### Customer-Facing
+- **Product Catalog** — Browse 170+ products across 20 categories with search, price range filter, sort, and pagination
+- **Product Detail** — Full description, image, stock status, reviews & ratings, wishlist toggle
+- **Cart** — Dual-mode: backend-synced for logged-in users, localStorage for guests
+- **Checkout** — Address selection, payment method (Razorpay / COD), coupon codes, bill summary
+- **Orders** — Order history with status progression (Pending → Confirmed → Shipped → Delivered), cancel with reason
+- **Return/Refund** — Request returns on delivered orders with reason selection and status tracking
+- **Notifications** — Bell icon with unread badge, dropdown, full notifications page, 30s polling
+- **Invoice** — Print-friendly invoice page for delivered orders (Save as PDF)
+- **Wishlist** — Save products for later, move to cart
+- **Addresses** — CRUD with type labels (Home/Work/Other), default selection
+- **User Profile** — Edit email, phone, change password, delete account
+- **Recently Viewed** — localStorage-tracked, shown on homepage
+- **Reviews & Ratings** — Write reviews, star ratings displayed on product cards
 
+### UX / Performance
+- **Premium Navbar** — Apple/Nike inspired: expandable search overlay, centered nav, full-screen mobile menu, uniform icon sizing
+- **Code Splitting** — Route-level lazy loading via `React.lazy` + `Suspense`
+- **Vendor Chunking** — Separate cached bundles for React, UI libs, and data libs (initial load reduced 58%)
+- **Lazy Images** — Native `loading="lazy"` on product grids
+- **Responsive** — Mobile-first, full-screen mobile nav, bottom filter drawer on products page
+- **Toast System** — Success/error/warning/info notifications
 
-## 👨‍💻 Author
-**Saurabh Sonawane**  
-- 🔗 LinkedIn: [https://www.linkedin.com/in/saurabhsds13]  
-- 🐙 GitHub: [https://github.com/Saurabhsds13]  
-- 📧 Email: saurabhdsds13@gmail.com
+### Backend Capabilities
+- **JWT with Refresh Token Rotation** — Silent refresh, queued retries on 401
+- **Razorpay Integration** — Create payment order, open checkout, verify signature server-side
+- **Admin APIs** — Product CRUD + image upload, category management, coupon management, order status updates, user management
+- **Product Search** — Keyword + category + price range + sort with paginated results
+- **Best Selling / Top Rated** — Aggregate queries with fallback to newest
+- **Audit Models** — `AdminAuditLog`, `InventoryLog`, `SystemConfig` (ready for OMS microservice)
 
+---
 
-## ⚠️ Disclaimer
-This prototype project is for educational and demonstration purposes only and is not affiliated with or endorsed by any e-commerce organization.
+## Project Structure
+
+```
+QuickBasket-Ecommerce-System/
+│
+├── DMART-CLIENT/                    # React frontend
+│   ├── src/
+│   │   ├── components/              # Navbar, ProductCard, Modals, Toast, etc.
+│   │   ├── context/                 # AuthContext, CartContext
+│   │   ├── hooks/                   # useRecentlyViewed
+│   │   ├── pages/                   # Home, AllProducts, Checkout, Orders, Invoice, etc.
+│   │   └── services/api.js          # Axios instance + all API functions
+│   ├── vite.config.js               # Build optimization (manual chunks)
+│   └── package.json
+│
+├── DMART-SERVER/                    # Spring Boot backend
+│   └── src/main/java/com/dmart/clone/
+│       ├── admin/                   # Admin controllers + services
+│       ├── config/                  # Security, CORS, Admin seeder
+│       ├── controller/              # REST controllers (12 controllers)
+│       ├── dto/                     # Request/Response records (23 DTOs)
+│       ├── exception/               # Global exception handler
+│       ├── model/                   # JPA entities (20 models)
+│       ├── repository/              # Spring Data repositories
+│       ├── security/                # JWT filter + utility
+│       └── service/                 # Business logic (interface + impl)
+│
+├── Images/                          # Uploaded product images (local storage)
+├── docs/                            # SRS, schema docs, ERD
+└── seed-data.sql                    # Full database seed (categories + products + images)
+```
+
+---
+
+## Getting Started
+
+### Prerequisites
+- Java 17+
+- Node.js 18+
+- MySQL 8.0
+- Maven
+
+### Backend
+
+```bash
+cd DMART-SERVER
+# Configure database in src/main/resources/application.properties
+mvn spring-boot:run
+```
+
+The admin user is auto-seeded on first run (`admin` / `Adminpassword@123`).
+
+### Frontend
+
+```bash
+cd DMART-CLIENT
+npm install
+npm run dev
+```
+
+Runs on `http://localhost:5173`, API proxied to `http://localhost:8080`.
+
+### Database Seed
+
+```bash
+# After first run creates tables:
+mysql -u root -proot dmart < DMART-SERVER/src/main/resources/seed.sql
+```
+
+Seeds 20 categories, 170 products, and product images.
+
+---
+
+## API Overview
+
+| Module | Endpoints | Auth |
+|--------|-----------|------|
+| Auth | Login, Register, Refresh, Logout | Public |
+| Products | List, Search, By Category, Best Selling, Top Rated, Detail | Public |
+| Reviews | Get reviews/rating (public), Write/Delete (auth) | Mixed |
+| Cart | Get, Add, Update quantity, Remove, Clear | Auth |
+| Orders | Place, List, Detail, Cancel | Auth |
+| Returns | Create request, List, By order | Auth |
+| Notifications | List, Unread count, Mark read, Mark all | Auth |
+| Wishlist | List, Add, Remove, Check | Auth |
+| Addresses | List, Add, Update, Set default, Delete | Auth |
+| Payments | Create Razorpay order, Verify payment | Auth |
+| Coupons | Apply coupon | Auth |
+| Admin | Products CRUD, Categories, Orders, Users, Coupons | Admin |
+
+Full Swagger docs available at `/swagger-ui.html` when running.
+
+---
+
+## Roadmap
+
+Planned for the next iteration (microservice architecture):
+
+- [ ] **Redis** — Session caching, product catalog cache, rate limiting
+- [ ] **Apache Kafka** — Event-driven order processing, notification dispatch, inventory sync
+- [ ] **API Gateway** — Spring Cloud Gateway for routing, load balancing, circuit breaking
+- [ ] **OMS Microservice** — Dedicated order management with saga pattern
+- [ ] **Admin Microservice** — Separate admin panel with analytics dashboard
+- [ ] **Email Service** — Async email via Kafka consumers (order confirmation, shipping updates)
+- [ ] **Elasticsearch** — Full-text product search with fuzzy matching and auto-suggest
+- [ ] **Docker + K8s** — Containerized deployment with orchestration
+
+---
+
+## Author
+
+**Saurabh Sonawane**
+
+- LinkedIn: [linkedin.com/in/saurabhsds13](https://www.linkedin.com/in/saurabhsds13)
+- GitHub: [github.com/Saurabhsds13](https://github.com/Saurabhsds13)
+- Email: saurabhdsds13@gmail.com
+
+---
+
+## License
+
+This project is for educational and portfolio demonstration purposes.
