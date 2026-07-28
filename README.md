@@ -83,7 +83,7 @@ A production-grade grocery e-commerce system built with **Spring Boot** and **Re
 ```
 QuickBasket-Ecommerce-System/
 │
-├── DMART-CLIENT/                    # React frontend
+├── quickbasket-web/                 # React frontend
 │   ├── src/
 │   │   ├── components/              # Navbar, ProductCard, Modals, Toast, etc.
 │   │   ├── context/                 # AuthContext, CartContext
@@ -93,7 +93,7 @@ QuickBasket-Ecommerce-System/
 │   ├── vite.config.js               # Build optimization (manual chunks)
 │   └── package.json
 │
-├── DMART-SERVER/                    # Spring Boot backend
+├── quickbasket-api/                 # Spring Boot backend
 │   └── src/main/java/com/dmart/clone/
 │       ├── admin/                   # Admin controllers + services
 │       ├── config/                  # Security, CORS, Admin seeder
@@ -123,7 +123,7 @@ QuickBasket-Ecommerce-System/
 ### Backend
 
 ```bash
-cd DMART-SERVER
+cd quickbasket-api
 # Configure database in src/main/resources/application.properties
 mvn spring-boot:run
 ```
@@ -133,7 +133,7 @@ The admin user is auto-seeded on first run (`admin` / `Adminpassword@123`).
 ### Frontend
 
 ```bash
-cd DMART-CLIENT
+cd quickbasket-web
 npm install
 npm run dev
 ```
@@ -144,7 +144,7 @@ Runs on `http://localhost:5173`, API proxied to `http://localhost:8080`.
 
 ```bash
 # After first run creates tables:
-mysql -u root -proot dmart < DMART-SERVER/src/main/resources/seed.sql
+mysql -u root -proot dmart < quickbasket-api/src/main/resources/seed.sql
 ```
 
 Seeds 20 categories, 170 products, and product images.

@@ -22,6 +22,13 @@ target/
 /logs
 !.mvn/wrapper/maven-wrapper.jar
 
+# Eclipse metadata
+.metadata/
+.settings/
+.classpath
+.project
+.factorypath
+
 # === Node / React ===
 node_modules/
 build/
@@ -30,13 +37,12 @@ dist/
 .env.*
 yarn.lock
 npm-debug.log*
+.vite/
 
 # OS-specific
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# Eclipse metadata
-.metadata/
-DMART-CLIENT/.vite/deps/_metadata.json
-DMART-CLIENT/.vite/deps/package.json
+# Uploaded images (large binary files)
+Images/

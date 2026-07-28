@@ -8,11 +8,11 @@
 		<version>3.2.5</version>
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.dmart.clone</groupId>
-	<artifactId>DMART-SERVER</artifactId>
+	<groupId>com.quickbasket</groupId>
+	<artifactId>quickbasket-api</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
-	<name>Dmart-Server</name>
-	<description>This is a clone project for a ecommerce site www.dmart.in</description>
+	<name>QuickBasket API</name>
+	<description>Backend REST API for QuickBasket e-commerce platform</description>
 	<properties>
 		<java.version>17</java.version>
 	</properties>
