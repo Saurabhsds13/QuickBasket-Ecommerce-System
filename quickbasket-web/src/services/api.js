@@ -5,6 +5,7 @@ const API_BASE_URL = "http://localhost:8080/api";
 // Create axios instance with interceptors
 const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true, // Send cookies with every request
 });
 
 // Request interceptor — attach JWT token to every request
@@ -72,7 +73,7 @@ api.interceptors.response.use(
       try {
         const res = await axios.post(`${API_BASE_URL}/auth/refresh`, {
           refreshToken: storedRefreshToken,
-        });
+        }, { withCredentials: true });
 
         const { token: newToken } = res.data;
         localStorage.setItem("token", newToken);

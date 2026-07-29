@@ -85,6 +85,11 @@
 			<artifactId>razorpay-java</artifactId>
 			<version>1.4.6</version>
 		</dependency>
+		<!-- Caffeine Cache -->
+		<dependency>
+			<groupId>com.github.ben-manes.caffeine</groupId>
+			<artifactId>caffeine</artifactId>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
