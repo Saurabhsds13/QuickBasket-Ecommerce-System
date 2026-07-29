@@ -14,21 +14,12 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 @EnableCaching
 public class CacheConfig {
 
-    @Bean
-    public CacheManager cacheManager() {
-        CaffeineCacheManager cacheManager = new CaffeineCacheManager(
-                "categories",
-                "products",
-                "productById",
-                "productsByCategory",
-                "bestSelling",
-                "topRated",
-                "productRatings"
-        );
-        cacheManager.setCaffeine(Caffeine.newBuilder()
-                .maximumSize(500)
-                .expireAfterWrite(5, TimeUnit.MINUTES)
-                .recordStats());
-        return cacheManager;
-    }
+	@Bean
+	public CacheManager cacheManager() {
+		CaffeineCacheManager cacheManager = new CaffeineCacheManager("categories", "products", "productById",
+				"productsByCategory", "bestSelling", "topRated", "productRatings");
+		cacheManager.setCaffeine(
+				Caffeine.newBuilder().maximumSize(500).expireAfterWrite(5, TimeUnit.MINUTES).recordStats());
+		return cacheManager;
+	}
 }
