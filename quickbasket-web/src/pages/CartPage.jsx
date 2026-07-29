@@ -144,10 +144,11 @@ export default function CartPage() {
                           src={
                             item.primaryImageUrl
                               ? `${API_BASE_URL}${item.primaryImageUrl}`
-                              : "/fallback-product.png"
+                              : "https://placehold.co/100x100/f3f4f6/9ca3af?text=No+Image"
                           }
                           alt={item.name}
                           className="w-20 h-20 rounded-xl object-cover bg-gray-100 flex-shrink-0"
+                          onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/100x100/f3f4f6/9ca3af?text=No+Image"; }}
                         />
                         <div className="min-w-0">
                           <h3 className="text-sm font-semibold text-gray-900 line-clamp-2">{item.name}</h3>

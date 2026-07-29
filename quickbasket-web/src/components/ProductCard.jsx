@@ -14,7 +14,7 @@ export default function ProductCard({ product }) {
 
   const imageUrl = product.primaryImageUrl
     ? `${API_BASE_URL}${product.primaryImageUrl}`
-    : "/fallback-product.png";
+    : "https://placehold.co/300x300/f3f4f6/9ca3af?text=No+Image";
 
   const inCart = cartItems.find((item) => item.id === product.id);
 
@@ -30,7 +30,7 @@ export default function ProductCard({ product }) {
           alt={product.name || "Product"}
           loading="lazy"
           className="max-h-full object-contain transition-transform duration-500 group-hover:scale-110"
-          onError={(e) => { e.target.src = "/fallback-product.png"; }}
+          onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/300x300/f3f4f6/9ca3af?text=No+Image"; }}
         />
 
         {/* Quick add overlay */}

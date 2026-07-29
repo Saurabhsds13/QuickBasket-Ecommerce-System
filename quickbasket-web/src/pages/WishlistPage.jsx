@@ -79,11 +79,11 @@ export default function WishlistPage() {
                   src={
                     item.productImage
                       ? `${API_BASE_URL}${item.productImage}`
-                      : "/fallback-product.png"
+                      : "https://placehold.co/200x200/f3f4f6/9ca3af?text=No+Image"
                   }
                   alt={item.productName}
                   className="w-full h-48 object-contain bg-gray-50 p-4"
-                  onError={(e) => { e.target.src = "/fallback-product.png"; }}
+                  onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/200x200/f3f4f6/9ca3af?text=No+Image"; }}
                 />
                 <div className="p-4">
                   <h3 className="font-medium text-gray-800 mb-1">{item.productName}</h3>

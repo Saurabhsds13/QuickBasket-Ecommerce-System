@@ -319,10 +319,11 @@ export default function CheckoutPage() {
                         src={
                           item.primaryImageUrl
                             ? `${API_BASE_URL}${item.primaryImageUrl}`
-                            : "/fallback-product.png"
+                            : "https://placehold.co/100x100/f3f4f6/9ca3af?text=No+Image"
                         }
                         alt={item.name}
                         className="w-14 h-14 object-cover rounded-lg"
+                        onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/100x100/f3f4f6/9ca3af?text=No+Image"; }}
                       />
                       <div>
                         <h3 className="font-medium text-gray-800">{item.name}</h3>

@@ -313,10 +313,10 @@ function OrderCard({ order, onCancelClick, onReturnClick, navigate }) {
             {order.items.map((item) => (
               <div key={item.id} className="flex items-center gap-4 bg-white rounded-xl p-3 border border-gray-100">
                 <img
-                  src={item.productImage ? `${API_BASE_URL}${item.productImage}` : "/fallback-product.png"}
+                  src={item.productImage ? `${API_BASE_URL}${item.productImage}` : "https://placehold.co/100x100/f3f4f6/9ca3af?text=No+Image"}
                   alt={item.productName}
                   className="w-16 h-16 object-contain rounded-lg bg-gray-50 p-1"
-                  onError={(e) => { e.target.src = "/fallback-product.png"; }}
+                  onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/100x100/f3f4f6/9ca3af?text=No+Image"; }}
                 />
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-gray-800 truncate">{item.productName}</p>

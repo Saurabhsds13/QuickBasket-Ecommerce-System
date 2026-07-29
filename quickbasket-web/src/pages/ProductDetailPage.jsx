@@ -143,7 +143,7 @@ export default function ProductDetailPage() {
 
   const imageUrl = product.primaryImageUrl
     ? `${API_BASE_URL}${product.primaryImageUrl}`
-    : "/fallback-product.png";
+    : "https://placehold.co/400x400/f3f4f6/9ca3af?text=No+Image";
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
@@ -165,7 +165,7 @@ export default function ProductDetailPage() {
               src={imageUrl}
               alt={product.name}
               className="max-h-96 object-contain"
-              onError={(e) => { e.target.src = "/fallback-product.png"; }}
+              onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/300x300/f3f4f6/9ca3af?text=No+Image"; }}
             />
           </div>
 
