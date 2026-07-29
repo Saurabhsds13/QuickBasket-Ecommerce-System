@@ -159,7 +159,7 @@ const Navbar = () => {
                 >
                   {link.label}
                   {location.pathname === link.to && (
-                    <span className="absolute -bottom-[21px] left-0 right-0 h-[2px] bg-gray-900 rounded-full" />
+                    <span className="absolute -bottom-[21px] left-0 right-0 h-[2px] bg-green-600 rounded-full" />
                   )}
                 </Link>
               ))}
@@ -317,7 +317,7 @@ const Navbar = () => {
               ) : (
                 <button
                   onClick={() => setIsAuthOpen(true)}
-                  className="hidden md:inline-flex ml-2 px-5 py-2 text-sm font-medium text-white bg-gray-900 rounded-full hover:bg-gray-800 transition-colors duration-200"
+                  className="hidden md:inline-flex ml-2 px-5 py-2 text-sm font-medium text-white bg-gray-900 rounded-full hover:bg-green-700 transition-colors duration-200"
                 >
                   Sign In
                 </button>
@@ -450,7 +450,7 @@ const Navbar = () => {
             ) : (
               <button
                 onClick={() => { setIsAuthOpen(true); setIsMobileMenuOpen(false); }}
-                className="w-full py-3.5 text-[15px] font-medium text-white bg-gray-900 rounded-xl hover:bg-gray-800 transition"
+                className="w-full py-3.5 text-[15px] font-medium text-white bg-gray-900 rounded-xl hover:bg-green-700 transition"
               >
                 Sign In
               </button>

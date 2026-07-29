@@ -150,7 +150,7 @@ export default function ProductDetailPage() {
         <p className="text-lg text-gray-500 mb-4">Product not found.</p>
         <button
           onClick={() => navigate("/AllProducts")}
-          className="px-6 py-3 text-sm font-medium text-white bg-gray-900 rounded-full hover:bg-gray-800 transition"
+          className="px-6 py-3 text-sm font-medium text-white bg-gray-900 rounded-full hover:bg-green-700 transition"
         >
           Browse Products
         </button>
@@ -286,7 +286,7 @@ export default function ProductDetailPage() {
                 <button
                   onClick={handleAddToCart}
                   disabled={product.stockQuantity <= 0}
-                  className="w-full py-4 text-[15px] font-medium text-white bg-gray-900 rounded-full hover:bg-gray-800 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="w-full py-4 text-[15px] font-medium text-white bg-gray-900 rounded-full hover:bg-green-700 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Add to Bag
                 </button>
@@ -360,7 +360,7 @@ export default function ProductDetailPage() {
           <button
             onClick={handleAddToCart}
             disabled={product.stockQuantity <= 0}
-            className="px-8 py-3 text-sm font-medium text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-40"
+            className="px-8 py-3 text-sm font-medium text-white bg-gray-900 rounded-full hover:bg-green-700 transition disabled:opacity-40"
           >
             Add to Bag
           </button>
@@ -429,7 +429,7 @@ export default function ProductDetailPage() {
               <button
                 type="submit"
                 disabled={reviewSubmitting}
-                className="mt-3 px-6 py-2.5 text-sm font-medium text-white bg-gray-900 rounded-full hover:bg-gray-800 transition disabled:opacity-50"
+                className="mt-3 px-6 py-2.5 text-sm font-medium text-white bg-gray-900 rounded-full hover:bg-green-700 transition disabled:opacity-50"
               >
                 {reviewSubmitting ? "Posting..." : "Post Review"}
               </button>

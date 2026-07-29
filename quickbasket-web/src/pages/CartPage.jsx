@@ -115,7 +115,7 @@ export default function CartPage() {
             </p>
             <button
               onClick={() => navigate("/AllProducts")}
-              className="px-8 py-3 text-sm font-medium text-white bg-gray-900 rounded-full hover:bg-gray-800 transition"
+              className="px-8 py-3 text-sm font-medium text-white bg-gray-900 rounded-full hover:bg-green-700 transition"
             >
               Start Shopping
             </button>
@@ -262,7 +262,7 @@ export default function CartPage() {
 
                 <button
                   onClick={handleCheckout}
-                  className="w-full mt-5 h-12 bg-gray-900 text-white font-medium rounded-full hover:bg-gray-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                  className="w-full mt-5 h-12 bg-gray-900 text-white font-medium rounded-full hover:bg-green-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                 >
                   Checkout
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">

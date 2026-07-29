@@ -81,7 +81,7 @@ export default function WishlistPage() {
             </p>
             <button
               onClick={() => navigate("/AllProducts")}
-              className="px-8 py-3 text-sm font-medium text-white bg-gray-900 rounded-full hover:bg-gray-800 transition-colors"
+              className="px-8 py-3 text-sm font-medium text-white bg-gray-900 rounded-full hover:bg-green-700 transition-colors"
             >
               Continue Shopping
             </button>
@@ -139,7 +139,7 @@ export default function WishlistPage() {
                   {/* Move to Cart */}
                   <button
                     onClick={() => handleMoveToCart(item)}
-                    className="w-full py-2.5 text-sm font-medium text-white bg-gray-900 rounded-full hover:bg-gray-800 active:scale-[0.98] transition-all"
+                    className="w-full py-2.5 text-sm font-medium text-white bg-gray-900 rounded-full hover:bg-green-700 active:scale-[0.98] transition-all"
                   >
                     Move to Bag
                   </button>

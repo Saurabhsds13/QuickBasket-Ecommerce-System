@@ -1,10 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import HeroBanner from "../components/HeroBanner.jsx";
-import BenefitsSection from "../components/BenefitsSection.jsx";
 import NewsletterSignup from "../components/NewsletterSignup.jsx";
 import ProductCard from "../components/ProductCard.jsx";
-import { getProducts, getCategories, getBestSellingProducts, getTopRatedProducts } from "../services/api";
+import { getCategories, getBestSellingProducts, getTopRatedProducts } from "../services/api";
 import { getRecentlyViewedProducts } from "../hooks/useRecentlyViewed";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
@@ -16,65 +15,32 @@ export default function Home() {
   const [recentlyViewed, setRecentlyViewed] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const categoryScrollRef = useRef(null);
+  const recentScrollRef = useRef(null);
 
-  // Map category names to relevant emojis and colors
-  const getCategoryStyle = (name, index) => {
+  const getCategoryEmoji = (name) => {
     const n = name.toLowerCase();
-    const styles = [
-      { emoji: "🥬", bg: "bg-green-50", iconBg: "bg-green-100" },
-      { emoji: "🍎", bg: "bg-red-50", iconBg: "bg-red-100" },
-      { emoji: "🥛", bg: "bg-blue-50", iconBg: "bg-blue-100" },
-      { emoji: "🍞", bg: "bg-amber-50", iconBg: "bg-amber-100" },
-      { emoji: "🧴", bg: "bg-purple-50", iconBg: "bg-purple-100" },
-      { emoji: "🍖", bg: "bg-orange-50", iconBg: "bg-orange-100" },
-      { emoji: "🍪", bg: "bg-yellow-50", iconBg: "bg-yellow-100" },
-      { emoji: "🧊", bg: "bg-cyan-50", iconBg: "bg-cyan-100" },
-      { emoji: "☕", bg: "bg-stone-50", iconBg: "bg-stone-100" },
-      { emoji: "🧹", bg: "bg-teal-50", iconBg: "bg-teal-100" },
-    ];
-
-    // Keyword-based matching
-    if (n.includes("vegetable") || n.includes("veggie") || n.includes("green"))
-      return { emoji: "🥬", bg: "bg-green-50", iconBg: "bg-green-100" };
-    if (n.includes("fruit"))
-      return { emoji: "🍎", bg: "bg-red-50", iconBg: "bg-red-100" };
-    if (n.includes("dairy") || n.includes("milk"))
-      return { emoji: "🥛", bg: "bg-blue-50", iconBg: "bg-blue-100" };
-    if (n.includes("bread") || n.includes("bakery") || n.includes("bake"))
-      return { emoji: "🍞", bg: "bg-amber-50", iconBg: "bg-amber-100" };
-    if (n.includes("meat") || n.includes("chicken") || n.includes("fish") || n.includes("seafood"))
-      return { emoji: "🍖", bg: "bg-orange-50", iconBg: "bg-orange-100" };
-    if (n.includes("snack") || n.includes("chip") || n.includes("biscuit"))
-      return { emoji: "🍪", bg: "bg-yellow-50", iconBg: "bg-yellow-100" };
-    if (n.includes("beverage") || n.includes("drink") || n.includes("juice"))
-      return { emoji: "🧃", bg: "bg-pink-50", iconBg: "bg-pink-100" };
-    if (n.includes("coffee") || n.includes("tea"))
-      return { emoji: "☕", bg: "bg-stone-50", iconBg: "bg-stone-100" };
-    if (n.includes("frozen") || n.includes("ice"))
-      return { emoji: "🧊", bg: "bg-cyan-50", iconBg: "bg-cyan-100" };
-    if (n.includes("clean") || n.includes("household") || n.includes("detergent"))
-      return { emoji: "🧹", bg: "bg-teal-50", iconBg: "bg-teal-100" };
-    if (n.includes("personal") || n.includes("care") || n.includes("hygiene") || n.includes("beauty"))
-      return { emoji: "🧴", bg: "bg-purple-50", iconBg: "bg-purple-100" };
-    if (n.includes("rice") || n.includes("grain") || n.includes("dal") || n.includes("pulse") || n.includes("atta"))
-      return { emoji: "🌾", bg: "bg-lime-50", iconBg: "bg-lime-100" };
-    if (n.includes("oil") || n.includes("ghee") || n.includes("masala") || n.includes("spice"))
-      return { emoji: "🫒", bg: "bg-emerald-50", iconBg: "bg-emerald-100" };
-    if (n.includes("baby") || n.includes("infant"))
-      return { emoji: "🍼", bg: "bg-pink-50", iconBg: "bg-pink-100" };
-    if (n.includes("pet"))
-      return { emoji: "🐾", bg: "bg-amber-50", iconBg: "bg-amber-100" };
-    if (n.includes("organic") || n.includes("natural"))
-      return { emoji: "🌿", bg: "bg-emerald-50", iconBg: "bg-emerald-100" };
-    if (n.includes("noodle") || n.includes("pasta") || n.includes("instant"))
-      return { emoji: "🍜", bg: "bg-orange-50", iconBg: "bg-orange-100" };
-    if (n.includes("sweet") || n.includes("chocolate") || n.includes("candy"))
-      return { emoji: "🍫", bg: "bg-rose-50", iconBg: "bg-rose-100" };
-    if (n.includes("egg"))
-      return { emoji: "🥚", bg: "bg-yellow-50", iconBg: "bg-yellow-100" };
-
-    // Fallback — cycle through styles based on index
-    return styles[index % styles.length];
+    if (n.includes("electronic")) return "📱";
+    if (n.includes("fashion")) return "👕";
+    if (n.includes("home") || n.includes("kitchen")) return "🏠";
+    if (n.includes("sport") || n.includes("fitness")) return "🏋️";
+    if (n.includes("book")) return "📚";
+    if (n.includes("beauty") || n.includes("personal care")) return "✨";
+    if (n.includes("toy") || n.includes("game")) return "🎮";
+    if (n.includes("auto")) return "🚗";
+    if (n.includes("health") || n.includes("wellness")) return "💊";
+    if (n.includes("pet")) return "🐾";
+    if (n.includes("fruit") || n.includes("vegetable")) return "🥬";
+    if (n.includes("dairy") || n.includes("egg")) return "🥛";
+    if (n.includes("beverage") || n.includes("drink")) return "☕";
+    if (n.includes("snack") || n.includes("bakery")) return "🍪";
+    if (n.includes("staple") || n.includes("grain")) return "🌾";
+    if (n.includes("frozen") || n.includes("ready")) return "🧊";
+    if (n.includes("meat") || n.includes("seafood")) return "🍖";
+    if (n.includes("personal")) return "🧴";
+    if (n.includes("household") || n.includes("essential")) return "🧹";
+    if (n.includes("baby") || n.includes("kid")) return "🍼";
+    return "🛒";
   };
 
   useEffect(() => {
@@ -87,7 +53,7 @@ export default function Home() {
         ]);
         setFeaturedProducts(bestSellingRes.data);
         setTopRatedProducts(topRatedRes.data);
-        setCategories(categoriesRes.data.slice(0, 6));
+        setCategories(categoriesRes.data);
       } catch (err) {
         console.error("Error fetching home data:", err);
       } finally {
@@ -95,209 +61,255 @@ export default function Home() {
       }
     };
     fetchData();
-    // Load recently viewed from localStorage
     setRecentlyViewed(getRecentlyViewedProducts());
   }, []);
 
-  return (
-    <main className="max-w-7xl mx-auto px-4">
-      {/* Hero */}
-      <HeroBanner />
+  const scrollContainer = (ref, direction) => {
+    if (ref.current) {
+      ref.current.scrollBy({ left: direction * 300, behavior: "smooth" });
+    }
+  };
 
-      {/* Categories Section */}
-      <section className="py-16">
-        <div className="flex items-center justify-between mb-10">
-          <div>
-            <h2 className="text-3xl font-bold text-gray-900">Shop by Category</h2>
-            <p className="text-gray-500 mt-1">Browse our wide selection of fresh groceries</p>
+  return (
+    <main>
+      {/* Hero */}
+      <div className="max-w-7xl mx-auto px-4">
+        <HeroBanner />
+      </div>
+
+      {/* Categories — Horizontal scroll */}
+      <section className="py-10 md:py-14">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight">Shop by Category</h2>
+            <button
+              onClick={() => navigate("/AllProducts")}
+              className="text-sm text-green-600 font-medium hover:text-green-700 transition flex items-center gap-1"
+            >
+              View all
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
           </div>
-          <button
-            onClick={() => navigate("/AllProducts")}
-            className="hidden md:flex items-center gap-1 text-green-600 font-medium hover:text-green-700 transition"
-          >
-            View All
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
         </div>
 
-        {categories.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5">
-            {categories.map((category, index) => {
-              const categoryStyle = getCategoryStyle(category.name, index);
-              const hasImage = category.imageUrl;
-              const imageUrl = hasImage ? `${API_BASE_URL}${category.imageUrl}` : null;
+        <div className="relative">
+          {/* Scroll buttons */}
+          <button
+            onClick={() => scrollContainer(categoryScrollRef, -1)}
+            className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-10 w-9 h-9 bg-white border border-gray-200 rounded-full items-center justify-center shadow-md hover:shadow-lg hover:border-green-300 transition"
+          >
+            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <button
+            onClick={() => scrollContainer(categoryScrollRef, 1)}
+            className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-10 w-9 h-9 bg-white border border-gray-200 rounded-full items-center justify-center shadow-md hover:shadow-lg hover:border-green-300 transition"
+          >
+            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
 
-              return (
-                <button
-                  key={category.id}
-                  onClick={() => navigate(`/AllProducts?category=${category.id}`)}
-                  className="group relative flex flex-col items-center gap-4 p-6 bg-white rounded-2xl border border-gray-100 hover:border-transparent hover:shadow-xl hover:shadow-gray-200/60 transition-all duration-300 hover:-translate-y-1.5 overflow-hidden"
-                >
-                  {/* Background gradient on hover */}
-                  <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${categoryStyle.bg}`} />
-
-                  {/* Icon or Image */}
-                  <div className={`relative w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 overflow-hidden ${!hasImage ? categoryStyle.iconBg : ''}`}>
-                    {hasImage ? (
-                      <img
-                        src={imageUrl}
-                        alt={category.name}
-                        className="w-full h-full object-cover rounded-2xl"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                          e.target.nextSibling.style.display = 'flex';
-                        }}
-                      />
-                    ) : null}
-                    <span
-                      className={`text-3xl ${hasImage ? 'hidden' : 'block'}`}
-                      style={hasImage ? { display: 'none' } : {}}
-                    >
-                      {categoryStyle.emoji}
-                    </span>
-                  </div>
-
-                  {/* Name */}
-                  <span className="relative text-sm font-semibold text-gray-800 group-hover:text-gray-900 text-center transition-colors leading-tight">
-                    {category.name}
-                  </span>
-
-                  {/* Arrow indicator on hover */}
-                  <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </button>
-              );
-            })}
+          <div
+            ref={categoryScrollRef}
+            className="flex gap-4 overflow-x-auto px-4 md:px-[max(1rem,calc((100%-80rem)/2+1rem))] pb-2 scrollbar-hide scroll-smooth"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            {categories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => navigate(`/AllProducts?category=${category.id}`)}
+                className="flex-shrink-0 flex flex-col items-center gap-2.5 w-[90px] group"
+              >
+                <div className="w-16 h-16 rounded-2xl bg-gray-100 group-hover:bg-green-100 flex items-center justify-center text-2xl transition-colors duration-200 group-hover:scale-105 transform">
+                  {getCategoryEmoji(category.name)}
+                </div>
+                <span className="text-xs font-medium text-gray-700 group-hover:text-green-700 text-center leading-tight transition-colors line-clamp-2">
+                  {category.name}
+                </span>
+              </button>
+            ))}
           </div>
-        ) : (
-          !loading && <p className="text-gray-400 text-center">No categories available</p>
-        )}
+        </div>
       </section>
 
       {/* Best Sellers */}
-      <section className="py-16 border-t border-gray-100">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-3xl font-bold text-gray-900">Best Sellers</h2>
-            <p className="text-gray-500 mt-1">Most popular products loved by our customers</p>
+      <section className="py-10 md:py-14 bg-gray-50/50">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight">Best Sellers</h2>
+              <p className="text-sm text-gray-500 mt-1">Most loved by our customers</p>
+            </div>
+            <button
+              onClick={() => navigate("/AllProducts")}
+              className="hidden md:flex items-center gap-1 text-sm text-green-600 font-medium hover:text-green-700 transition"
+            >
+              See all
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
           </div>
-          <button
-            onClick={() => navigate("/AllProducts")}
-            className="hidden md:flex items-center gap-1 text-green-600 font-medium hover:text-green-700 transition"
-          >
-            See All Products
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </div>
 
-        {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl border border-gray-100 overflow-hidden animate-pulse">
-                <div className="h-48 bg-gray-100"></div>
-                <div className="p-4 space-y-3">
-                  <div className="h-3 bg-gray-100 rounded w-1/3"></div>
-                  <div className="h-4 bg-gray-100 rounded w-3/4"></div>
-                  <div className="h-3 bg-gray-100 rounded w-full"></div>
-                  <div className="h-5 bg-gray-100 rounded w-1/4 mt-2"></div>
+          {loading ? (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="bg-white rounded-2xl border border-gray-100 overflow-hidden animate-pulse">
+                  <div className="h-48 bg-gray-100" />
+                  <div className="p-4 space-y-3">
+                    <div className="h-3 bg-gray-100 rounded w-1/3" />
+                    <div className="h-4 bg-gray-100 rounded w-3/4" />
+                    <div className="h-5 bg-gray-100 rounded w-1/4 mt-2" />
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : featuredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {featuredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        ) : (
-          <p className="text-gray-400 text-center py-12">No products available yet.</p>
-        )}
+              ))}
+            </div>
+          ) : featuredProducts.length > 0 ? (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+              {featuredProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-400 text-center py-12">No products available yet.</p>
+          )}
 
-        <div className="md:hidden text-center mt-8">
-          <button
-            onClick={() => navigate("/AllProducts")}
-            className="bg-green-600 text-white px-8 py-3 rounded-xl font-medium hover:bg-green-700 transition"
-          >
-            View All Products
-          </button>
+          <div className="md:hidden text-center mt-8">
+            <button
+              onClick={() => navigate("/AllProducts")}
+              className="px-6 py-2.5 text-sm font-medium text-gray-900 border border-gray-300 rounded-full hover:border-green-500 hover:text-green-700 transition"
+            >
+              View All Products
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Promo Banner */}
+      <section className="max-w-7xl mx-auto px-4 py-10 md:py-14">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 p-8 md:p-12">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/3 -translate-x-1/4" />
+
+          <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
+            <div>
+              <p className="text-green-100 text-sm font-medium mb-1">Limited time offer</p>
+              <h3 className="text-2xl md:text-3xl font-bold text-white">
+                Free Delivery on orders above ₹500
+              </h3>
+              <p className="text-green-100 mt-2 text-sm">Plus get ₹150 off on orders above ₹1000</p>
+            </div>
+            <button
+              onClick={() => navigate("/AllProducts")}
+              className="flex-shrink-0 px-7 py-3 bg-white text-green-700 font-semibold text-sm rounded-full hover:bg-green-50 transition shadow-lg"
+            >
+              Shop Now
+            </button>
+          </div>
         </div>
       </section>
 
       {/* Top Rated */}
       {topRatedProducts.length > 0 && (
-        <section className="py-16 border-t border-gray-100">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-3xl font-bold text-gray-900">Top Rated</h2>
-              <p className="text-gray-500 mt-1">Highest rated by our community</p>
+        <section className="py-10 md:py-14">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight">Top Rated</h2>
+                <p className="text-sm text-gray-500 mt-1">Highest rated by our community</p>
+              </div>
+              <button
+                onClick={() => navigate("/AllProducts")}
+                className="hidden md:flex items-center gap-1 text-sm text-green-600 font-medium hover:text-green-700 transition"
+              >
+                View all
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
             </div>
+
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+              {topRatedProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Recently Viewed — Horizontal scroll */}
+      {recentlyViewed.length > 0 && (
+        <section className="py-10 md:py-14 border-t border-gray-100">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight">Recently Viewed</h2>
+            </div>
+          </div>
+
+          <div className="relative">
             <button
-              onClick={() => navigate("/AllProducts")}
-              className="hidden md:flex items-center gap-1 text-green-600 font-medium hover:text-green-700 transition"
+              onClick={() => scrollContainer(recentScrollRef, -1)}
+              className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-10 w-9 h-9 bg-white border border-gray-200 rounded-full items-center justify-center shadow-md hover:shadow-lg hover:border-green-300 transition"
             >
-              View All
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+              <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-          </div>
+            <button
+              onClick={() => scrollContainer(recentScrollRef, 1)}
+              className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-10 w-9 h-9 bg-white border border-gray-200 rounded-full items-center justify-center shadow-md hover:shadow-lg hover:border-green-300 transition"
+            >
+              <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
 
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {topRatedProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
+            <div
+              ref={recentScrollRef}
+              className="flex gap-4 overflow-x-auto px-4 md:px-[max(1rem,calc((100%-80rem)/2+1rem))] pb-2 scroll-smooth"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            >
+              {recentlyViewed.slice(0, 10).map((product) => (
+                <div key={product.id} className="flex-shrink-0 w-[180px] md:w-[220px]">
+                  <ProductCard product={product} />
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       )}
 
-      {/* Recently Viewed */}
-      {recentlyViewed.length > 0 && (
-        <section className="py-16 border-t border-gray-100">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-3xl font-bold text-gray-900">Recently Viewed</h2>
-              <p className="text-gray-500 mt-1">Products you've checked out recently</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {recentlyViewed.slice(0, 8).map((product) => (
-              <ProductCard key={product.id} product={product} />
+      {/* Benefits — Compact inline row */}
+      <section className="py-12 border-t border-gray-100">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+            {[
+              { icon: "🚀", title: "20-Min Delivery", sub: "Lightning fast to your door" },
+              { icon: "🍎", title: "Farm Fresh", sub: "Directly from local farms" },
+              { icon: "🔄", title: "Easy Returns", sub: "7-day hassle-free returns" },
+              { icon: "🛡️", title: "Secure Payment", sub: "100% protected checkout" },
+            ].map((item, i) => (
+              <div key={i} className="flex items-start gap-3">
+                <span className="text-2xl flex-shrink-0">{item.icon}</span>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">{item.title}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{item.sub}</p>
+                </div>
+              </div>
             ))}
           </div>
-        </section>
-      )}
-
-      {/* Benefits */}
-      <BenefitsSection />
-
-      {/* Stats Section */}
-      <section className="py-16 border-t border-gray-100">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          {[
-            { value: "10K+", label: "Happy Customers" },
-            { value: "500+", label: "Products" },
-            { value: "20 min", label: "Avg Delivery" },
-            { value: "4.8★", label: "App Rating" },
-          ].map((stat, i) => (
-            <div key={i} className="text-center">
-              <p className="text-3xl md:text-4xl font-bold text-green-600">{stat.value}</p>
-              <p className="text-sm text-gray-500 mt-1">{stat.label}</p>
-            </div>
-          ))}
         </div>
       </section>
 
       {/* Newsletter */}
-      <NewsletterSignup />
+      <div className="max-w-7xl mx-auto px-4">
+        <NewsletterSignup />
+      </div>
     </main>
   );
 }
