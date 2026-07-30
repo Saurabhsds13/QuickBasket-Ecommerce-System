@@ -14,6 +14,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.dmart.clone.config.CookieUtil;
 import com.dmart.clone.service.CustomUserDetailsService;
+import com.dmart.clone.service.TokenBlacklistService;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
@@ -29,12 +30,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService userDetailsService;
     private final CookieUtil cookieUtil;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Autowired
-    public JwtAuthenticationFilter(JwtUtil jwtUtil, CustomUserDetailsService userDetailsService, CookieUtil cookieUtil) {
+    public JwtAuthenticationFilter(JwtUtil jwtUtil, CustomUserDetailsService userDetailsService,
+                                    CookieUtil cookieUtil, TokenBlacklistService tokenBlacklistService) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
         this.cookieUtil = cookieUtil;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
 
     @Override
@@ -45,6 +49,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (token == null) {
             filterChain.doFilter(request, response);
+            return;
+        }
+
+        // Check if token is blacklisted (logged out)
+        if (tokenBlacklistService.isBlacklisted(token)) {
+            response.setContentType("application/json");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("{\"status\":401,\"message\":\"Token has been revoked\"}");
             return;
         }
 

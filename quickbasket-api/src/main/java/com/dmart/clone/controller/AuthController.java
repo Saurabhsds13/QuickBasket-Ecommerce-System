@@ -12,7 +12,9 @@ import com.dmart.clone.dto.JwtResponse;
 import com.dmart.clone.dto.LoginRequest;
 import com.dmart.clone.dto.RefreshTokenRequest;
 import com.dmart.clone.dto.RegisterRequest;
+import com.dmart.clone.security.JwtUtil;
 import com.dmart.clone.service.AuthServiceImpl;
+import com.dmart.clone.service.TokenBlacklistService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -23,10 +25,15 @@ public class AuthController {
 
     private final AuthServiceImpl authService;
     private final CookieUtil cookieUtil;
+    private final TokenBlacklistService tokenBlacklistService;
+    private final JwtUtil jwtUtil;
 
-    public AuthController(AuthServiceImpl authService, CookieUtil cookieUtil) {
+    public AuthController(AuthServiceImpl authService, CookieUtil cookieUtil,
+                          TokenBlacklistService tokenBlacklistService, JwtUtil jwtUtil) {
         this.authService = authService;
         this.cookieUtil = cookieUtil;
+        this.tokenBlacklistService = tokenBlacklistService;
+        this.jwtUtil = jwtUtil;
     }
 
     @PostMapping("/login")
@@ -67,7 +74,24 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@RequestBody(required = false) RefreshTokenRequest req,
                                         HttpServletRequest request) {
-        // Try cookie first, then request body
+        // Blacklist the access token
+        String accessToken = cookieUtil.getAccessTokenFromCookies(request);
+        if (accessToken == null) {
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                accessToken = authHeader.substring(7);
+            }
+        }
+        if (accessToken != null) {
+            try {
+                long expiry = jwtUtil.extractExpiration(accessToken).getTime();
+                tokenBlacklistService.blacklist(accessToken, expiry);
+            } catch (Exception e) {
+                // Token may already be expired — that's fine
+            }
+        }
+
+        // Revoke refresh token
         String refreshTokenStr = cookieUtil.getRefreshTokenFromCookies(request);
         if (refreshTokenStr == null && req != null) {
             refreshTokenStr = req.refreshToken();
