@@ -24,6 +24,10 @@ const Navbar = () => {
   const userMenuRef = useRef(null);
   const notifRef = useRef(null);
   const searchInputRef = useRef(null);
+  // Mirror of showNotifications for use inside the stable SSE subscription,
+  // so the subscription doesn't tear down every time the dropdown toggles.
+  const showNotificationsRef = useRef(false);
+  useEffect(() => { showNotificationsRef.current = showNotifications; }, [showNotifications]);
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -76,25 +80,23 @@ const Navbar = () => {
     return () => clearInterval(interval);
   }, [fetchUnreadCount]);
 
-  // Live order-status updates via SSE: bump the badge and prepend the
-  // notification instantly instead of waiting for the 30s poll.
+  // Live order-status updates via SSE. The backend consumer already persists a
+  // notification for each event, so we treat the server as the source of truth:
+  // refetch the authoritative unread count (instead of optimistically bumping,
+  // which drifts across tabs and duplicates persisted rows), and refetch the
+  // list if the dropdown is currently open so the user sees it immediately.
   useEffect(() => {
     if (!isAuthenticated) return;
-    const unsubscribe = subscribeOrderStream((update) => {
-      setUnreadCount((prev) => prev + 1);
-      setNotifications((prev) => [
-        {
-          id: `live-${update.orderId}-${Date.now()}`,
-          message: update.message,
-          type: "ORDER",
-          seen: false,
-          createdAt: update.occurredAt || new Date().toISOString(),
-        },
-        ...prev,
-      ]);
+    const unsubscribe = subscribeOrderStream(() => {
+      fetchUnreadCount();
+      if (showNotificationsRef.current) {
+        getNotifications()
+          .then((res) => setNotifications(res.data))
+          .catch((err) => console.error("Failed to refresh notifications:", err));
+      }
     });
     return unsubscribe;
-  }, [isAuthenticated]);
+  }, [isAuthenticated, fetchUnreadCount]);
 
   const handleNotificationClick = async () => {
     setShowNotifications(!showNotifications);
@@ -102,6 +104,8 @@ const Navbar = () => {
       try {
         const res = await getNotifications();
         setNotifications(res.data);
+        // Sync the badge with the server after loading the list.
+        fetchUnreadCount();
       } catch (err) {
         console.error("Failed to fetch notifications:", err);
       }

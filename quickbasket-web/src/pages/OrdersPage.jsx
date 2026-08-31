@@ -249,14 +249,24 @@ function OrderCard({ order, onCancelClick, onReturnClick, navigate }) {
       {order.status !== "CANCELLED" && order.status !== "DELIVERED" && (
         <div className="px-5 pb-3">
           <div className="flex items-center gap-0.5">
-            {["PENDING", "CONFIRMED", "SHIPPED", "DELIVERED"].map((step, idx) => {
-              const currentIdx = ["PENDING", "CONFIRMED", "SHIPPED", "DELIVERED"].indexOf(order.status);
-              return (
+            {(() => {
+              const steps = ["PENDING", "CONFIRMED", "SHIPPED", "DELIVERED"];
+              // Map every order status (including OMS-only values) onto a step.
+              const stepIndexByStatus = {
+                PENDING: 0,
+                CONFIRMED: 1,
+                APPROVED: 1,
+                SHIPPED: 2,
+                PARTIALLY_SHIPPED: 2,
+                DELIVERED: 3,
+              };
+              const currentIdx = stepIndexByStatus[order.status] ?? 0;
+              return steps.map((step, idx) => (
                 <div key={step} className="flex-1">
                   <div className={`h-1 rounded-full ${idx <= currentIdx ? "bg-green-500" : "bg-gray-200"}`} />
                 </div>
-              );
-            })}
+              ));
+            })()}
           </div>
           <div className="flex justify-between mt-1">
             <span className="text-[9px] text-gray-400">Placed</span>
