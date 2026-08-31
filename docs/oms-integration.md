@@ -99,13 +99,32 @@ canonical forms are):
   delivery is **at-least-once**, so the OMS should treat `ORDER_PLACED`
   idempotently (dedupe on `orderNumber` + `eventType`).
 
-## Open items to confirm
+## Settled decisions (personal/demo scope)
 
-1. **`productCode`** — `SKU-<productId>` (current) vs. real catalog SKUs.
-2. **Paid state vocabulary** — QuickBasket sets the local status to `CONFIRMED`
-   on payment success; the OMS lifecycle uses `APPROVED`. Confirm whether
-   QuickBasket should surface `APPROVED` instead, or keep `CONFIRMED` locally
-   while mapping incoming OMS statuses.
-3. **Partition/replication** settings for the shared topics.
-4. **Backfill** of `orderNumber` for orders that existed before this
-   integration (otherwise OMS status events for those orders are skipped).
+These were evaluated and settled for the current personal/demo deployment. They
+would deserve revisiting for a production rollout (see Production notes).
+
+1. **`productCode`** — derived as `SKU-<productId>`. No dedicated SKU column;
+   the OMS maps against QuickBasket's internal product ids.
+2. **Paid state vocabulary** — QuickBasket keeps its local `CONFIRMED` status on
+   payment success and maps incoming OMS statuses as-is. OMS `APPROVED` is
+   treated as the OMS acknowledging the order; the two words intentionally
+   describe slightly different states.
+3. **Topics** — dev defaults: 3 partitions, replication factor 1, auto-created
+   by the app.
+4. **`orderNumber` backfill** — not performed. Orders created before this
+   integration have `order_number = NULL` and are simply skipped by the
+   consumer (harmless for demo data).
+
+## Production notes (if this ever goes beyond demo)
+
+- Replace derived `productCode` with a real `Product.sku` column mapped to the
+  OMS catalog.
+- Set replication factor >= 3 and size partitions to expected throughput;
+  pre-create topics via the platform/OMS team rather than app auto-create.
+- Backfill `orderNumber` for existing orders:
+  `UPDATE orders SET order_number = CONCAT('QB-', id) WHERE order_number IS NULL;`
+- Consider a transactional outbox (produce-after-commit can drop an event on a
+  crash between commit and publish) and a dead-letter topic for the consumer.
+- The SSE emitter registry is in-memory; scaling beyond one API instance needs
+  a shared fan-out (e.g. Redis pub/sub).
