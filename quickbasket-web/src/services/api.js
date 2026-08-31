@@ -166,7 +166,10 @@ export const removeFromCartAPI = (productId) =>
 export const clearCartAPI = () => api.delete("/public/cart/clear");
 
 // ============ ORDERS (Authenticated) ============
-export const placeOrder = () => api.post("/user/orders/place");
+// paymentMethod is optional; pass "COD" so the backend emits the OMS
+// ORDER_PLACED event at placement time (online orders emit on payment verify).
+export const placeOrder = (paymentMethod) =>
+  api.post("/user/orders/place", paymentMethod ? { paymentMethod } : {});
 
 export const getMyOrders = () => api.get("/user/orders");
 

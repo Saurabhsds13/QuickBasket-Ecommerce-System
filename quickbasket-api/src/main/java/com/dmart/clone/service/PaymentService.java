@@ -15,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.dmart.clone.dto.PaymentOrderResponse;
 import com.dmart.clone.dto.PaymentVerifyRequest;
 import com.dmart.clone.exception.ResourceNotFoundException;
+import com.dmart.clone.messaging.AfterCommitExecutor;
+import com.dmart.clone.messaging.OrderEventProducer;
 import com.dmart.clone.model.Order;
 import com.dmart.clone.model.OrderStatus;
 import com.dmart.clone.model.Payment;
@@ -37,10 +39,15 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
+    private final OrderEventProducer orderEventProducer;
+    private final AfterCommitExecutor afterCommitExecutor;
 
-    public PaymentService(PaymentRepository paymentRepository, OrderRepository orderRepository) {
+    public PaymentService(PaymentRepository paymentRepository, OrderRepository orderRepository,
+            OrderEventProducer orderEventProducer, AfterCommitExecutor afterCommitExecutor) {
         this.paymentRepository = paymentRepository;
         this.orderRepository = orderRepository;
+        this.orderEventProducer = orderEventProducer;
+        this.afterCommitExecutor = afterCommitExecutor;
     }
 
     /**
@@ -123,6 +130,10 @@ public class PaymentService {
         order.setStatus(OrderStatus.CONFIRMED);
         order.setUpdatedAt(Instant.now());
         orderRepository.save(order);
+
+        // Notify the OMS that a (paid) order was placed — only after this
+        // transaction commits, so the OMS never sees an order we rolled back.
+        afterCommitExecutor.execute(() -> orderEventProducer.sendOrderPlaced(order));
 
         return true;
     }

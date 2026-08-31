@@ -48,7 +48,7 @@ export default function CheckoutPage() {
     }
     try {
       setPlacing(true);
-      const orderRes = await placeOrder();
+      const orderRes = await placeOrder(paymentMethod);
       const orderId = orderRes.data?.id;
 
       if (paymentMethod === "COD") {

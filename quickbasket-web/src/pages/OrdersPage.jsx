@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { getMyOrders, cancelOrder, createReturnRequest, getReturnByOrderId } from "../services/api";
+import { subscribeOrderStream } from "../services/orderStream";
 import { Package, ChevronRight, X, AlertTriangle, RotateCcw, FileText } from "lucide-react";
 import { useToast } from "../components/Toast";
 
@@ -9,6 +10,8 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 const statusConfig = {
   PENDING: { label: "In Progress", dot: "bg-amber-500", text: "text-amber-700", bg: "bg-amber-50 border-amber-200" },
   CONFIRMED: { label: "Confirmed", dot: "bg-blue-500", text: "text-blue-700", bg: "bg-blue-50 border-blue-200" },
+  APPROVED: { label: "Approved", dot: "bg-blue-500", text: "text-blue-700", bg: "bg-blue-50 border-blue-200" },
+  PARTIALLY_SHIPPED: { label: "Partially Shipped", dot: "bg-indigo-500", text: "text-indigo-700", bg: "bg-indigo-50 border-indigo-200" },
   SHIPPED: { label: "Shipped", dot: "bg-purple-500", text: "text-purple-700", bg: "bg-purple-50 border-purple-200" },
   DELIVERED: { label: "Delivered", dot: "bg-green-600", text: "text-green-700", bg: "bg-green-50 border-green-200" },
   CANCELLED: { label: "Cancelled", dot: "bg-red-500", text: "text-red-700", bg: "bg-red-50 border-red-200" },
@@ -342,9 +345,25 @@ export default function OrdersPage() {
     fetchOrders();
   }, []);
 
+  // Live order-status updates: patch the matching order in place as the OMS
+  // reports changes, so the list reflects the new status without a refresh.
+  useEffect(() => {
+    const unsubscribe = subscribeOrderStream((update) => {
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.id === update.orderId
+            ? { ...o, status: update.status, updatedAt: update.occurredAt || o.updatedAt }
+            : o
+        )
+      );
+    });
+    return unsubscribe;
+  }, []);
+
   const filteredOrders = orders.filter((order) => {
     if (activeFilter === "ALL") return true;
-    if (activeFilter === "ACTIVE") return ["PENDING", "CONFIRMED", "SHIPPED"].includes(order.status);
+    if (activeFilter === "ACTIVE")
+      return ["PENDING", "CONFIRMED", "APPROVED", "PARTIALLY_SHIPPED", "SHIPPED"].includes(order.status);
     if (activeFilter === "DELIVERED") return order.status === "DELIVERED";
     if (activeFilter === "CANCELLED") return order.status === "CANCELLED";
     return true;

@@ -22,12 +22,20 @@ import jakarta.persistence.Table;
 @Table(name = "orders", indexes = {
     @Index(name = "idx_order_user", columnList = "user_id"),
     @Index(name = "idx_order_status", columnList = "status"),
-    @Index(name = "idx_order_created_at", columnList = "createdAt")
+    @Index(name = "idx_order_created_at", columnList = "createdAt"),
+    @Index(name = "idx_order_order_number", columnList = "orderNumber")
 })
 public class Order {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+
+	/**
+	 * Stable business key shared with the external OMS (e.g. "QB-100234").
+	 * Assigned once the order id is known (see OrderNumberGenerator).
+	 */
+	@Column(unique = true, length = 32)
+	private String orderNumber;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id")
@@ -55,6 +63,14 @@ public class Order {
 
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+	public String getOrderNumber() {
+		return orderNumber;
+	}
+
+	public void setOrderNumber(String orderNumber) {
+		this.orderNumber = orderNumber;
 	}
 
 	public User getUser() {

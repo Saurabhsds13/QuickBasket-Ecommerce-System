@@ -5,6 +5,7 @@ import CartDrawer from "./CartDrawer";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { getNotifications, getUnreadNotificationCount, markNotificationAsRead, markAllNotificationsAsRead } from "../services/api";
+import { subscribeOrderStream } from "../services/orderStream";
 
 const Navbar = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -70,9 +71,30 @@ const Navbar = () => {
 
   useEffect(() => {
     fetchUnreadCount();
+    // Poll every 30s as a fallback in case the live stream drops.
     const interval = setInterval(fetchUnreadCount, 30000);
     return () => clearInterval(interval);
   }, [fetchUnreadCount]);
+
+  // Live order-status updates via SSE: bump the badge and prepend the
+  // notification instantly instead of waiting for the 30s poll.
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const unsubscribe = subscribeOrderStream((update) => {
+      setUnreadCount((prev) => prev + 1);
+      setNotifications((prev) => [
+        {
+          id: `live-${update.orderId}-${Date.now()}`,
+          message: update.message,
+          type: "ORDER",
+          seen: false,
+          createdAt: update.occurredAt || new Date().toISOString(),
+        },
+        ...prev,
+      ]);
+    });
+    return unsubscribe;
+  }, [isAuthenticated]);
 
   const handleNotificationClick = async () => {
     setShowNotifications(!showNotifications);

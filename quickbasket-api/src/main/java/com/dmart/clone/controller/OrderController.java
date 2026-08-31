@@ -32,9 +32,11 @@ public class OrderController {
 	private UserService userService;
 
 	@PostMapping("/place")
-	public ResponseEntity<OrderDto> placeOrder(HttpServletRequest request) {
+	public ResponseEntity<OrderDto> placeOrder(@RequestBody(required = false) Map<String, String> body,
+			HttpServletRequest request) {
 		User user = userService.getCurrentUser(request);
-		Order order = orderService.placeOrder(user);
+		String paymentMethod = body != null ? body.get("paymentMethod") : null;
+		Order order = orderService.placeOrder(user, paymentMethod);
 		OrderDto dto = new OrderDto(order.getId(), user.getUsername(), order.getTotalPrice(), order.getStatus(),
 				order.getCreatedAt(), order.getUpdatedAt(), List.of(), null);
 		return ResponseEntity.ok(dto);
