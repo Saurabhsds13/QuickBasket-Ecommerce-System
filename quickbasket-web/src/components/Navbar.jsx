@@ -5,6 +5,7 @@ import CartDrawer from "./CartDrawer";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { getNotifications, getUnreadNotificationCount, markNotificationAsRead, markAllNotificationsAsRead } from "../services/api";
+import { subscribeOrderStream } from "../services/orderStream";
 
 const Navbar = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -23,6 +24,10 @@ const Navbar = () => {
   const userMenuRef = useRef(null);
   const notifRef = useRef(null);
   const searchInputRef = useRef(null);
+  // Mirror of showNotifications for use inside the stable SSE subscription,
+  // so the subscription doesn't tear down every time the dropdown toggles.
+  const showNotificationsRef = useRef(false);
+  useEffect(() => { showNotificationsRef.current = showNotifications; }, [showNotifications]);
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -70,9 +75,28 @@ const Navbar = () => {
 
   useEffect(() => {
     fetchUnreadCount();
+    // Poll every 30s as a fallback in case the live stream drops.
     const interval = setInterval(fetchUnreadCount, 30000);
     return () => clearInterval(interval);
   }, [fetchUnreadCount]);
+
+  // Live order-status updates via SSE. The backend consumer already persists a
+  // notification for each event, so we treat the server as the source of truth:
+  // refetch the authoritative unread count (instead of optimistically bumping,
+  // which drifts across tabs and duplicates persisted rows), and refetch the
+  // list if the dropdown is currently open so the user sees it immediately.
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const unsubscribe = subscribeOrderStream(() => {
+      fetchUnreadCount();
+      if (showNotificationsRef.current) {
+        getNotifications()
+          .then((res) => setNotifications(res.data))
+          .catch((err) => console.error("Failed to refresh notifications:", err));
+      }
+    });
+    return unsubscribe;
+  }, [isAuthenticated, fetchUnreadCount]);
 
   const handleNotificationClick = async () => {
     setShowNotifications(!showNotifications);
@@ -80,6 +104,8 @@ const Navbar = () => {
       try {
         const res = await getNotifications();
         setNotifications(res.data);
+        // Sync the badge with the server after loading the list.
+        fetchUnreadCount();
       } catch (err) {
         console.error("Failed to fetch notifications:", err);
       }
@@ -159,7 +185,7 @@ const Navbar = () => {
                 >
                   {link.label}
                   {location.pathname === link.to && (
-                    <span className="absolute -bottom-[21px] left-0 right-0 h-[2px] bg-gray-900 rounded-full" />
+                    <span className="absolute -bottom-[21px] left-0 right-0 h-[2px] bg-green-600 rounded-full" />
                   )}
                 </Link>
               ))}
@@ -317,7 +343,7 @@ const Navbar = () => {
               ) : (
                 <button
                   onClick={() => setIsAuthOpen(true)}
-                  className="hidden md:inline-flex ml-2 px-5 py-2 text-sm font-medium text-white bg-gray-900 rounded-full hover:bg-gray-800 transition-colors duration-200"
+                  className="hidden md:inline-flex ml-2 px-5 py-2 text-sm font-medium text-white bg-gray-900 rounded-full hover:bg-green-700 transition-colors duration-200"
                 >
                   Sign In
                 </button>
@@ -450,7 +476,7 @@ const Navbar = () => {
             ) : (
               <button
                 onClick={() => { setIsAuthOpen(true); setIsMobileMenuOpen(false); }}
-                className="w-full py-3.5 text-[15px] font-medium text-white bg-gray-900 rounded-xl hover:bg-gray-800 transition"
+                className="w-full py-3.5 text-[15px] font-medium text-white bg-gray-900 rounded-xl hover:bg-green-700 transition"
               >
                 Sign In
               </button>

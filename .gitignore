@@ -6,8 +6,14 @@ target/
 *.log
 
 # Sensitive config - DO NOT commit secrets
+# Real secrets belong in env vars (see application.properties ${VAR:default}
+# placeholders) or an ignored local override file.
 **/application-local.properties
 **/application-prod.properties
+
+# Secret key exports / credentials
+**/*api_keys*.csv
+**/*credentials*.csv
 
 # IDE files
 .idea/

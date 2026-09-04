@@ -41,35 +41,38 @@ export default function CartPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 md:px-8 lg:px-16">
+    <div className="min-h-screen bg-white">
       {/* Auth Modal for unauthenticated checkout */}
       <AuthModal open={showAuth} setOpen={setShowAuth} />
 
-      <div className="container mx-auto max-w-6xl">
-        {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-          <button onClick={() => navigate("/")} className="hover:text-green-600 transition">
-            Home
-          </button>
-          <span>/</span>
-          <span className="text-gray-900 font-medium">Shopping Cart</span>
-        </nav>
+      {/* Breadcrumb */}
+      <div className="border-b border-gray-100">
+        <div className="max-w-[1200px] mx-auto px-5 md:px-10 py-3">
+          <nav className="flex items-center gap-2 text-xs text-gray-500">
+            <button onClick={() => navigate("/")} className="hover:text-gray-900 transition">Home</button>
+            <span>/</span>
+            <span className="text-gray-900 font-medium">Bag</span>
+          </nav>
+        </div>
+      </div>
+
+      <div className="max-w-[1200px] mx-auto px-5 md:px-10 py-8 md:py-12">
 
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Shopping Cart</h1>
-            <p className="text-gray-500 mt-1">
-              {cartItems.length} {cartItems.length === 1 ? "item" : "items"} in your cart
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">Your Bag</h1>
+            <p className="text-sm text-gray-500 mt-1">
+              {cartItems.length} {cartItems.length === 1 ? "item" : "items"}
             </p>
           </div>
           {cartItems.length > 0 && (
             <button
               onClick={() => navigate("/AllProducts")}
-              className="mt-3 sm:mt-0 text-sm text-green-600 hover:text-green-700 font-medium flex items-center gap-1 transition"
+              className="mt-3 sm:mt-0 text-sm text-gray-600 hover:text-gray-900 font-medium flex items-center gap-1.5 transition"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
               Continue Shopping
             </button>
@@ -78,20 +81,20 @@ export default function CartPage() {
 
         {/* Free Delivery Progress */}
         {cartItems.length > 0 && (
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-6">
+          <div className="rounded-xl p-4 mb-8 border border-gray-100 bg-gray-50/50">
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm font-medium text-gray-700">
                 {subtotal >= 500
-                  ? "🎉 You've unlocked FREE delivery!"
-                  : `🚚 Add ₹${(500 - subtotal).toFixed(0)} more for FREE delivery`}
+                  ? "You've unlocked free delivery!"
+                  : `₹${(500 - subtotal).toFixed(0)} away from free delivery`}
               </span>
-              <span className="text-xs text-gray-500 font-medium">
+              <span className="text-xs text-gray-400 font-medium">
                 ₹{subtotal.toFixed(0)} / ₹500
               </span>
             </div>
-            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-full transition-all duration-500"
+                className="h-full bg-gray-900 rounded-full transition-all duration-500"
                 style={{ width: `${Math.min((subtotal / 500) * 100, 100)}%` }}
               />
             </div>
@@ -100,19 +103,19 @@ export default function CartPage() {
 
         {cartItems.length === 0 ? (
           /* Empty Cart */
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center max-w-lg mx-auto">
-            <div className="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg className="w-12 h-12 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+          <div className="flex flex-col items-center justify-center py-24 md:py-32">
+            <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-6">
+              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Your cart is empty</h2>
-            <p className="text-gray-500 mb-8">
-              Browse our fresh products and add your favorites to get started.
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Your bag is empty</h2>
+            <p className="text-sm text-gray-500 text-center max-w-sm mb-8">
+              Looks like you haven't added anything yet. Explore our products and find something you love.
             </p>
             <button
               onClick={() => navigate("/AllProducts")}
-              className="bg-green-600 text-white font-semibold px-8 py-3 rounded-xl hover:bg-green-700 transition shadow-sm"
+              className="px-8 py-3 text-sm font-medium text-white bg-gray-900 rounded-full hover:bg-green-700 transition"
             >
               Start Shopping
             </button>
@@ -144,10 +147,11 @@ export default function CartPage() {
                           src={
                             item.primaryImageUrl
                               ? `${API_BASE_URL}${item.primaryImageUrl}`
-                              : "/fallback-product.png"
+                              : "https://placehold.co/100x100/f3f4f6/9ca3af?text=No+Image"
                           }
                           alt={item.name}
                           className="w-20 h-20 rounded-xl object-cover bg-gray-100 flex-shrink-0"
+                          onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/100x100/f3f4f6/9ca3af?text=No+Image"; }}
                         />
                         <div className="min-w-0">
                           <h3 className="text-sm font-semibold text-gray-900 line-clamp-2">{item.name}</h3>
@@ -258,12 +262,12 @@ export default function CartPage() {
 
                 <button
                   onClick={handleCheckout}
-                  className="w-full mt-5 h-12 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition shadow-sm flex items-center justify-center gap-2"
+                  className="w-full mt-5 h-12 bg-gray-900 text-white font-medium rounded-full hover:bg-green-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  Checkout
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
-                  Proceed to Checkout
                 </button>
 
                 {/* Trust Badges */}

@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -35,15 +36,17 @@ public class ProductServiceImpl implements ProductService {
 	}
 
 	@Override
+	@Cacheable(value = "products")
 	public List<ProductViewDto> getAllProducts() {
-		log.info("Fetching all products");
+		log.info("Fetching all products (cache miss)");
 
 		return productRepository.findAll().stream().map(this::mapToProductViewDto).collect(Collectors.toList());
 	}
 
 	@Override
+	@Cacheable(value = "productById", key = "#id")
 	public ProductViewDto getById(Long id) {
-		log.info("Fetching product by id={}", id);
+		log.info("Fetching product by id={} (cache miss)", id);
 
 		var product = productRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Product not found with id=" + id));
@@ -52,8 +55,9 @@ public class ProductServiceImpl implements ProductService {
 	}
 
 	@Override
+	@Cacheable(value = "productsByCategory", key = "#categoryId")
 	public List<ProductViewDto> getProductsByCategory(Long categoryId) {
-		log.info("Fetching products for categoryId={}", categoryId);
+		log.info("Fetching products for categoryId={} (cache miss)", categoryId);
 
 		List<Product> products = productRepository.findByCategoryId(categoryId);
 		if (products.isEmpty()) {
@@ -92,8 +96,9 @@ public class ProductServiceImpl implements ProductService {
 	}
 
 	@Override
+	@Cacheable(value = "bestSelling", key = "#limit")
 	public List<ProductViewDto> getBestSellingProducts(int limit) {
-		log.info("Fetching top {} best-selling products", limit);
+		log.info("Fetching top {} best-selling products (cache miss)", limit);
 		List<Product> products = productRepository.findBestSellingProducts(PageRequest.of(0, limit));
 
 		// If not enough order data, fall back to newest products
@@ -111,8 +116,9 @@ public class ProductServiceImpl implements ProductService {
 	}
 
 	@Override
+	@Cacheable(value = "topRated", key = "#limit")
 	public List<ProductViewDto> getTopRatedProducts(int limit) {
-		log.info("Fetching top {} rated products", limit);
+		log.info("Fetching top {} rated products (cache miss)", limit);
 		List<Product> products = productRepository.findTopRatedProducts(PageRequest.of(0, limit));
 
 		// If not enough reviews, fall back to newest products

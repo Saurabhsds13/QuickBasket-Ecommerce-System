@@ -11,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.dmart.clone.dto.OrderDto;
 import com.dmart.clone.dto.OrderItemDto;
 import com.dmart.clone.exception.ResourceNotFoundException;
+import com.dmart.clone.messaging.AfterCommitExecutor;
+import com.dmart.clone.messaging.OrderEventProducer;
 import com.dmart.clone.model.CartItem;
 import com.dmart.clone.model.Order;
 import com.dmart.clone.model.OrderItem;
@@ -32,7 +34,19 @@ public class OrderServiceImpl implements OrderService {
 	@Autowired
 	private ProductImageService productImageService;
 
+	@Autowired
+	private OrderEventProducer orderEventProducer;
+
+	@Autowired
+	private AfterCommitExecutor afterCommitExecutor;
+
+	@Override
 	public Order placeOrder(User user) {
+		return placeOrder(user, null);
+	}
+
+	@Override
+	public Order placeOrder(User user, String paymentMethod) {
 		List<CartItem> cartItems = cartRepository.findByUser(user);
 		if (cartItems.isEmpty())
 			throw new RuntimeException("Cart is empty");
@@ -56,7 +70,17 @@ public class OrderServiceImpl implements OrderService {
 		order.setTotalPrice(orderItems.stream().mapToDouble(OrderItem::getPrice).sum());
 
 		Order saved = orderRepository.save(order);
+		// Assign the OMS-facing business key once the DB id is known.
+		saved.setOrderNumber("QB-" + saved.getId());
+		saved = orderRepository.save(saved);
 		cartRepository.deleteAll(cartItems);
+
+		// COD orders have no payment step, so the "placed" signal to the OMS is
+		// emitted here (after commit). Online orders emit on payment verification.
+		if (paymentMethod != null && paymentMethod.equalsIgnoreCase("COD")) {
+			final Order placed = saved;
+			afterCommitExecutor.execute(() -> orderEventProducer.sendOrderPlaced(placed));
+		}
 		return saved;
 	}
 

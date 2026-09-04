@@ -63,7 +63,7 @@ public class SecurityConfig {
 		cfg.setAllowedOrigins(List.of("http://localhost:5173"));
 		cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
 		cfg.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-		cfg.setExposedHeaders(List.of("Authorization"));
+		cfg.setExposedHeaders(List.of("Authorization", "Set-Cookie"));
 		cfg.setAllowCredentials(true);
 		var src = new UrlBasedCorsConfigurationSource();
 		src.registerCorsConfiguration("/**", cfg);

@@ -18,6 +18,7 @@ import com.dmart.clone.admin.service.AdminProductService;
 import com.dmart.clone.dto.IdResponse;
 import com.dmart.clone.dto.ProductCreateDto;
 import com.dmart.clone.model.ProductImage;
+import com.dmart.clone.service.CacheEvictionService;
 import com.dmart.clone.service.ProductImageService;
 
 import jakarta.validation.Valid;
@@ -29,11 +30,13 @@ public class AdminProductController {
 
 	private final AdminProductService productService;
 	private final ProductImageService productimageService;
+	private final CacheEvictionService cacheEvictionService;
 
-	public AdminProductController(AdminProductService productService, ProductImageService productimageService) {
-
+	public AdminProductController(AdminProductService productService, ProductImageService productimageService,
+								   CacheEvictionService cacheEvictionService) {
 		this.productService = productService;
 		this.productimageService = productimageService;
+		this.cacheEvictionService = cacheEvictionService;
 	}
 
 	@PostMapping
@@ -41,6 +44,7 @@ public class AdminProductController {
 			UriComponentsBuilder uri) {
 
 		Long id = productService.createProduct(request);
+		cacheEvictionService.evictAllProductCaches();
 		return ResponseEntity.created(uri.path("/api/products/{id}").buildAndExpand(id).toUri())
 				.body(new IdResponse(id));
 	}
@@ -48,12 +52,14 @@ public class AdminProductController {
 	@PutMapping("/{id}")
 	public ResponseEntity<Void> updateProduct(@PathVariable Long id, @RequestBody @Valid ProductCreateDto request) {
 		productService.updateProduct(id, request);
+		cacheEvictionService.evictAllProductCaches();
 		return ResponseEntity.noContent().build();
 	}
 
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
 		productService.deleteProduct(id);
+		cacheEvictionService.evictAllProductCaches();
 		return ResponseEntity.noContent().build();
 	}
 

@@ -141,10 +141,11 @@ export default function CartDrawer({ isOpen, setIsOpen }) {
                     src={
                       item.primaryImageUrl
                         ? `${API_BASE_URL}${item.primaryImageUrl}`
-                        : "/fallback-product.png"
+                        : "https://placehold.co/100x100/f3f4f6/9ca3af?text=No+Image"
                     }
                     alt={item.name}
                     className="w-16 h-16 rounded-lg object-cover bg-gray-100 flex-shrink-0"
+                    onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/100x100/f3f4f6/9ca3af?text=No+Image"; }}
                   />
 
                   {/* Product Details */}

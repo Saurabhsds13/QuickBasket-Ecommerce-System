@@ -5,6 +5,7 @@ const API_BASE_URL = "http://localhost:8080/api";
 // Create axios instance with interceptors
 const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true, // Send cookies with every request
 });
 
 // Request interceptor — attach JWT token to every request
@@ -72,7 +73,7 @@ api.interceptors.response.use(
       try {
         const res = await axios.post(`${API_BASE_URL}/auth/refresh`, {
           refreshToken: storedRefreshToken,
-        });
+        }, { withCredentials: true });
 
         const { token: newToken } = res.data;
         localStorage.setItem("token", newToken);
@@ -165,7 +166,10 @@ export const removeFromCartAPI = (productId) =>
 export const clearCartAPI = () => api.delete("/public/cart/clear");
 
 // ============ ORDERS (Authenticated) ============
-export const placeOrder = () => api.post("/user/orders/place");
+// paymentMethod is optional; pass "COD" so the backend emits the OMS
+// ORDER_PLACED event at placement time (online orders emit on payment verify).
+export const placeOrder = (paymentMethod) =>
+  api.post("/user/orders/place", paymentMethod ? { paymentMethod } : {});
 
 export const getMyOrders = () => api.get("/user/orders");
 
