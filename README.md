@@ -174,10 +174,13 @@ Full Swagger docs available at `/swagger-ui.html` when running.
 
 ## Roadmap
 
-Planned for the next iteration (microservice architecture):
+### Implemented
 
-- [ ] **Redis** — Session caching, product catalog cache, rate limiting
-- [ ] **Apache Kafka** — Event-driven order processing, notification dispatch, inventory sync
+- [x] **Apache Kafka** — Event-driven order processing via the OMS integration. QuickBasket produces `ORDER_PLACED` events (produce-after-commit) to `oms.orders.inbound` and consumes order-status changes from `oms.orders.status`, updating the order, appending a status-history audit trail, creating user notifications, and pushing live updates over SSE. See [`docs/oms-integration.md`](docs/oms-integration.md).
+- [x] **Redis** — Product catalog caching and distributed rate limiting.
+
+### Planned
+
 - [ ] **API Gateway** — Spring Cloud Gateway for routing, load balancing, circuit breaking
 - [ ] **OMS Microservice** — Dedicated order management with saga pattern
 - [ ] **Admin Microservice** — Separate admin panel with analytics dashboard
